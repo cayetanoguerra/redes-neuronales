@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Introducción a las redes neuronales</title>
+<style>
+:root{--bg:#fff;--card:#fff;--fg:#243347;--muted:#5a6b7d;--accent:#17446a;--link:#185fa4;--line:#dae1e8;--item:#f1f6fa}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.6 system-ui,-apple-system,sans-serif}
+main{max-width:860px;margin:0 auto;background:var(--card);padding:40px 48px;min-height:100vh;box-sizing:border-box}
+h1{color:var(--accent);font-size:2.1rem;line-height:1.2;margin:.4em 0 .2em}
+.sub{color:var(--muted);margin-top:0}
+a{color:var(--link)}
+ol{list-style:none;padding:0;margin:28px 0}
+li{background:var(--item);border-radius:10px;padding:16px 20px;margin:12px 0;display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;align-items:baseline}
+li .t{font-weight:600;font-size:1.1rem;text-decoration:none}
+li .t:hover{text-decoration:underline}
+li .d{font-size:15px}
+h2{font-size:1.25rem;border-top:1px solid var(--line);padding-top:1em;margin-top:2em}
+code{font-size:.9em}
+.logo{max-width:260px;width:60%;display:block;margin-left:auto}
+@media (max-width:650px){main{padding:24px 16px}body{font-size:17px}h1{font-size:1.7rem}}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="notebooks/imgs/logo-curso.jpg" alt="Logotipo del curso">
+  <h1>Introducción a las redes neuronales</h1>
+  <p class="sub">Fundamentos de la Inteligencia Artificial y Programación de APIs para LLMs</p>
+  <p>De una sola neurona a una red que distingue tres especies de flores. Cada tema puede leerse aquí, con el código y sus resultados, o descargarse como notebook de Jupyter para ejecutarlo.</p>
+  <ol>
+      <li><a class="t" href="notebooks/01-neurona-y-clasificacion.html">01. Funcionamiento de una neurona</a><span class="d"><a href="notebooks/01-neurona-y-clasificacion.ipynb" download>Descargar notebook</a></span></li>
+      <li><a class="t" href="notebooks/02-sigmoide-y-gradiente.html">02. Neurona con activación sigmoide</a><span class="d"><a href="notebooks/02-sigmoide-y-gradiente.ipynb" download>Descargar notebook</a></span></li>
+      <li><a class="t" href="notebooks/03-descenso-por-el-gradiente.html">03. Descenso por el gradiente</a><span class="d"><a href="notebooks/03-descenso-por-el-gradiente.ipynb" download>Descargar notebook</a></span></li>
+      <li><a class="t" href="notebooks/04-entrenar-una-neurona.html">04. Aprendizaje de la neurona</a><span class="d"><a href="notebooks/04-entrenar-una-neurona.ipynb" download>Descargar notebook</a></span></li>
+      <li><a class="t" href="notebooks/05-perceptron-multicapa.html">05. La red neuronal</a><span class="d"><a href="notebooks/05-perceptron-multicapa.ipynb" download>Descargar notebook</a></span></li>
+      <li><a class="t" href="notebooks/06-clasificacion-multiclase.html">06. Redes neuronales multiclase</a><span class="d"><a href="notebooks/06-clasificacion-multiclase.ipynb" download>Descargar notebook</a></span></li>
+  </ol>
+  <h2>Ejecutar los notebooks</h2>
+  <p>Para ejecutar el código descarga el repositorio completo: los notebooks necesitan las carpetas <code>imgs/</code>, <code>data/</code> y <code>libs/</code> que están junto a ellos. Utilizan NumPy y Matplotlib, y el 06 necesita además PyTorch; las dependencias están en <code>requirements.txt</code>.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Dependencias para ejecutar los notebooks en Jupyter.
+# La web (HTML) no requiere instalación.
+numpy>=1.24,<3
+jupyterlab>=4,<5
+torch>=2.9,<3
+matplotlib>=3.10,<4
