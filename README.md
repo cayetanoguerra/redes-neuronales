@@ -15,6 +15,12 @@ Notebooks del módulo de redes neuronales de *Fundamentos de la Inteligencia Art
 
 La web se publica con GitHub Pages desde la raíz de la rama `main` (*Settings → Pages → Deploy from a branch → main / (root)*). La portada es `index.html` y cada notebook tiene su versión HTML, ya ejecutada, en `notebooks/`.
 
+## Trabajar en Google Colab
+
+Cada notebook tiene un botón **Abrir en Colab**, también disponible en la web. Desde Colab, *Archivo → Guardar una copia en Drive* crea una copia propia en la cuenta de Google de cada alumno. Las imágenes se cargan desde este repositorio y el notebook 06 incluye una celda inicial que clona el repositorio para disponer de `data/` y `libs/`. La última celda del 08 necesita LM Studio en el ordenador local y no funciona en Colab.
+
+Para abrir un notebook en Colab: `https://colab.research.google.com/github/cayetanoguerra/redes-neuronales/blob/main/notebooks/<notebook>.ipynb`
+
 ## Ejecutar los notebooks
 
 ```bash
