@@ -8,6 +8,8 @@ Notebooks del módulo de redes neuronales de *Fundamentos de la Inteligencia Art
 4. Aprendizaje de la neurona
 5. La red neuronal
 6. Redes neuronales multiclase
+7. Redes neuronales para texto: LLMs
+8. Modelos locales: un LLM en tu propio ordenador
 
 ## Leer en la web
 
