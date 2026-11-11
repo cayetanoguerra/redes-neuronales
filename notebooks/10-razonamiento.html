@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>11. MCP: un estándar para conectar modelos y herramientas</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>10. Razonamiento: de la cadena de pensamiento a los modelos que razonan</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7794,9 +7794,9 @@ a.anchor-link {
   }
 </style>
 <!-- End of mermaid configuration --><style>.site-bar{position:sticky;top:0;z-index:100;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:8px 16px;background:#17446a;color:#fff;font:15px/1.4 system-ui,-apple-system,sans-serif}.site-bar a{color:#fff;text-decoration:none}.site-bar a:hover{text-decoration:underline}.site-bar .r{display:flex;gap:16px}</style></head>
-<body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light"><nav class="site-bar"><a href="../index.html">← Índice del curso</a><span class="r"><a href="https://colab.research.google.com/github/cayetanoguerra/redes-neuronales/blob/main/notebooks/11-mcp.ipynb" target="_blank">Abrir en Colab</a><a href="11-mcp.ipynb" download>Descargar notebook</a></span></nav>
+<body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light"><nav class="site-bar"><a href="../index.html">← Índice del curso</a><span class="r"><a href="https://colab.research.google.com/github/cayetanoguerra/redes-neuronales/blob/main/notebooks/10-razonamiento.ipynb" target="_blank">Abrir en Colab</a><a href="10-razonamiento.ipynb" download>Descargar notebook</a></span></nav>
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e11e936e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1e6fb49b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7806,149 +7806,60 @@ a.anchor-link {
 <img alt="No description has been provided for this image" src="imgs/logo-curso.jpg" style="max-width:100%; padding-right:20px;" width="30%"/>
 </div>
 <p><strong>Fundamentos de la Inteligencia Artificial y Programación de APIs para LLMs</strong></p>
-<h1 id="11.-MCP:-un-est%C3%A1ndar-para-conectar-modelos-y-herramientas"><strong>11. MCP: un estándar para conectar modelos y herramientas</strong><a class="anchor-link" href="#11.-MCP:-un-est%C3%A1ndar-para-conectar-modelos-y-herramientas">¶</a></h1></div>
+<h1 id="10.-Razonamiento:-de-la-cadena-de-pensamiento-a-los-modelos-que-razonan"><strong>10. Razonamiento: de la cadena de pensamiento a los modelos que razonan</strong><a class="anchor-link" href="#10.-Razonamiento:-de-la-cadena-de-pensamiento-a-los-modelos-que-razonan">¶</a></h1></div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8de7b5ee">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6ba1d6df">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>En el notebook anterior dimos herramientas a un modelo: una calculadora, un calendario y un cuaderno de notas. Funcionaban, pero tenían una limitación que dejamos apuntada al final: cada herramienta vivía dentro de nuestro programa y solo servía para él.</p>
-<p>En este notebook veremos cómo se ha resuelto ese problema. Conoceremos <strong>MCP</strong> (<em>Model Context Protocol</em>), un estándar abierto que permite escribir una herramienta una sola vez y utilizarla desde cualquier aplicación de inteligencia artificial que lo entienda. Veremos qué piezas lo forman y, sobre todo, lo pondremos en práctica: convertiremos nuestro cuaderno de notas en un <strong>servidor MCP</strong>, nos conectaremos a él, miraremos los mensajes que se intercambian y haremos que Qwen3 lo utilice.</p>
+<p>En los notebooks anteriores vimos que un modelo de lenguaje genera su respuesta token a token, que podemos tener uno funcionando en nuestro propio ordenador con LM Studio y que nuestros programas pueden usarlo a través de su API. También vimos que se equivoca: a veces produce, con total seguridad, una respuesta que suena bien y es falsa.</p>
+<p>En este notebook empezamos un bloque nuevo, dedicado a cómo se ha ido construyendo la «inteligencia» de estos sistemas por encima de la simple predicción de tokens. El primer paso es el <strong>razonamiento</strong>. Veremos que un mismo modelo, sin cambiar ni uno solo de sus parámetros, falla un problema cuando le pedimos el resultado y lo acierta cuando le pedimos que lo resuelva paso a paso. Entenderemos por qué ocurre y cómo esa observación, que empezó siendo un truco al escribir la petición, ha terminado dando lugar a los <strong>modelos razonadores</strong> actuales.</p>
+<p>Esta vez no nos limitaremos a leer: haremos los experimentos con Qwen3, el modelo de 4B parámetros que instalamos en LM Studio. Todas las salidas que verás son respuestas reales de ese modelo.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=db241619">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=02c76d68">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="1.-El-problema:-cada-aplicaci%C3%B3n,-sus-propias-herramientas"><strong>1. El problema: cada aplicación, sus propias herramientas</strong><a class="anchor-link" href="#1.-El-problema:-cada-aplicaci%C3%B3n,-sus-propias-herramientas">¶</a></h2><p>Recordemos cómo construimos la herramienta <code>consultar_nota</code>. Escribimos una función de Python, redactamos su descripción en el formato que espera la API de OpenAI y la conectamos al bucle de nuestro programa. Todo quedó dentro del notebook.</p>
-<p>Supongamos ahora que queremos usar ese mismo cuaderno de notas desde el chat de LM Studio. O desde otro asistente. O desde el editor con el que preparamos los materiales. En cada caso habría que volver a escribir la conexión, porque cada aplicación tiene su propia manera de definir y ejecutar herramientas.</p>
-<p>Y el problema crece por los dos lados. Si en un centro se usan tres aplicaciones de IA y se quiere darles acceso a tres fuentes de información (las notas, el calendario, los archivos compartidos), hacen falta nueve integraciones diferentes. Cada aplicación nueva obliga a rehacer todas las conexiones, y cada fuente nueva también.</p>
-<div style="text-align:center">
-<img alt="Sin un estándar, cada aplicación necesita su propia conexión con cada herramienta; con MCP, cada pieza se conecta una sola vez" src="imgs/mcp/mcp-01-problema.png" style="max-width:100%;height:auto;border:1px solid #dae1e8;border-radius:8px;" width="80%"/>
-</div>
-<p style="text-align:center"><em>Sin un estándar, cada aplicación necesita su propia conexión con cada herramienta; con MCP, cada pieza se conecta una sola vez</em></p>
-<p>Es un problema viejo en informática y la solución es siempre la misma: <strong>acordar un estándar</strong>. Antes del USB, cada impresora, cada ratón y cada cámara tenían su propio conector. Hoy un mismo puerto sirve para todo, porque fabricantes de ordenadores y de periféricos se pusieron de acuerdo en cómo hablarse.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=071ce46a">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="2.-Qu%C3%A9-es-MCP"><strong>2. Qué es MCP</strong><a class="anchor-link" href="#2.-Qu%C3%A9-es-MCP">¶</a></h2><p><strong>MCP</strong> son las siglas de <em><strong>Model Context Protocol</strong></em>, «protocolo de contexto para modelos». Un <strong>protocolo</strong> es un conjunto de reglas que acuerdan dos programas para entenderse: qué mensajes pueden enviarse, con qué formato y qué significa cada uno.</p>
-<p>MCP define cómo debe comunicarse una aplicación de IA con los programas que le ofrecen herramientas y datos. Lo presentó la empresa Anthropic en noviembre de 2024 como estándar abierto, y en poco tiempo lo adoptaron el resto de grandes proveedores y la mayoría de aplicaciones, entre ellas LM Studio. Desde diciembre de 2025 ya no pertenece a una empresa: lo gestiona una fundación independiente, la <em>Agentic AI Foundation</em>, dentro de la Linux Foundation.</p>
-<p>Se suele describir como <strong>«el USB-C de las aplicaciones de IA»</strong>, y la comparación es buena:</p>
+<h2 id="1.-%C2%BFPuede-%C2%ABpensar%C2%BB-un-predictor-de-tokens?"><strong>1. ¿Puede «pensar» un predictor de tokens?</strong><a class="anchor-link" href="#1.-%C2%BFPuede-%C2%ABpensar%C2%BB-un-predictor-de-tokens?">¶</a></h2><p>Recordemos cómo responde un modelo de lenguaje. Recibe un contexto, calcula qué token podría venir a continuación, elige uno, lo añade al contexto y repite. No dispone de un borrador aparte ni de una memoria en la que guardar resultados parciales: <strong>lo único que conserva de un paso al siguiente es el texto que ya está escrito</strong>.</p>
+<p>Ahora piensa en cómo resolvemos las personas dos tipos de preguntas:</p>
 <ul>
-<li>quien crea una herramienta la escribe <strong>una vez</strong>, siguiendo el estándar, sin pensar en qué aplicación la usará;</li>
-<li>quien crea una aplicación implementa el estándar <strong>una vez</strong> y, a partir de ahí, puede conectarse a cualquier herramienta que lo siga.</li>
+<li>«¿Cuánto es 7 × 8?». Respondemos al instante, de memoria.</li>
+<li>«¿Cuánto es 347 × 286?». Nadie responde al instante. Cogemos papel y lápiz, hacemos multiplicaciones parciales, las apuntamos y las sumamos.</li>
 </ul>
-<p>El protocolo se revisa periódicamente y cada versión se identifica con una fecha. Este notebook utiliza la versión <code>2026-07-28</code>.</p>
+<p>El psicólogo Daniel Kahneman (Pensar rápido, pensar despacio) popularizó esta distinción hablando de un pensamiento rápido e intuitivo y otro lento y deliberado. Para el segundo necesitamos tiempo y, casi siempre, un sitio donde apuntar.</p>
+<p>Cuando pedimos a un modelo de lenguaje que conteste solo con el resultado, lo obligamos a trabajar siempre del primer modo: el primer token que escriba ya tiene que ser la respuesta. Para preguntas de memoria funciona muy bien. Para problemas de varios pasos, no tanto. Vamos a comprobarlo.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=be775bca">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=207837ba">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<div style="display:inline-block; background-color:#fff3cd; border:1px solid #f0c36d; border-left:6px solid #e0a800; border-radius:6px; padding:12px 16px; margin:12px 0; color:#333;">
-<b>MCP es un estándar abierto que define cómo se comunican las aplicaciones de IA con los programas que les ofrecen herramientas y datos. Una herramienta escrita para MCP sirve para cualquier aplicación compatible.</b>
+<h2 id="2.-Preparar-los-experimentos"><strong>2. Preparar los experimentos</strong><a class="anchor-link" href="#2.-Preparar-los-experimentos">¶</a></h2><p>Para ejecutar las celdas de este notebook necesitas:</p>
+<ol>
+<li><strong>LM Studio abierto y con el servidor local activo</strong> (sección <strong>Model Server</strong>), como vimos en el notebook 08.</li>
+<li><strong>Dos modelos descargados</strong>: <code>qwen/qwen3-4b-2507</code>, que responde directamente, y <code>qwen/qwen3-4b-thinking-2507</code>, la versión <em>Thinking</em> del mismo modelo, que usaremos en el apartado 7. No hace falta cargarlos a mano: LM Studio los carga en memoria cuando llega la primera petición.</li>
+<li><strong>La biblioteca <code>openai</code> de Python</strong>. Si no la tienes, instálala escribiendo <code>pip install openai</code> en una terminal.</li>
+</ol>
+<p>Como vimos en el notebook anterior, LM Studio imita la API de OpenAI, así que usaremos la biblioteca <code>openai</code> y la <strong>API Responses</strong>. El mismo código serviría para hablar con los modelos de OpenAI en la nube: bastaría con cambiar la dirección y el nombre del modelo.</p>
+<p>Igual que en el notebook anterior, estas celdas no funcionan en Google Colab, porque Colab no puede conectar con el LM Studio de tu ordenador. Descarga el notebook y ábrelo con Jupyter en el mismo equipo en el que tienes LM Studio.</p>
+<p>La primera celda crea la conexión y comprueba que el servidor responde:</p>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e139ce4b">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-Las-tres-piezas:-host,-cliente-y-servidor"><strong>3. Las tres piezas: host, cliente y servidor</strong><a class="anchor-link" href="#3.-Las-tres-piezas:-host,-cliente-y-servidor">¶</a></h2><div style="text-align:center">
-<img alt="Arquitectura de MCP: el host contiene el modelo y un cliente por cada servidor al que se conecta" src="imgs/mcp/mcp-02-arquitectura.png" style="max-width:100%;height:auto;border:1px solid #dae1e8;border-radius:8px;" width="80%"/>
-</div>
-<p style="text-align:center"><em>Arquitectura de MCP: el host contiene el modelo y un cliente por cada servidor al que se conecta</em></p>
-<p>En MCP intervienen tres papeles:</p>
-<ul>
-<li><strong>Servidor MCP.</strong> Es el programa que <strong>ofrece</strong> las herramientas y los datos. Nuestro cuaderno de notas será un servidor. Puede ejecutarse en nuestro propio ordenador o en internet.</li>
-<li><strong>Host.</strong> Es la <strong>aplicación de IA</strong> que utiliza el usuario: LM Studio, un asistente de escritorio, un editor de código o, como veremos, nuestro propio notebook. El host contiene el modelo de lenguaje y decide a qué servidores conectarse.</li>
-<li><strong>Cliente MCP.</strong> Es la parte del host que mantiene la conexión con <strong>un</strong> servidor y habla con él siguiendo el protocolo. Si el host se conecta a tres servidores, tiene tres clientes.</li>
-</ul>
-<p>Relaciónalo con lo que aprendimos en el notebook anterior. Allí decíamos que el modelo pide y <strong>el programa</strong> ejecuta. Con MCP, ese programa se divide en dos: el <strong>host</strong>, que conversa con el modelo, y el <strong>servidor</strong>, que ejecuta la herramienta. Entre ambos, el protocolo. El modelo, por su parte, sigue haciendo exactamente lo mismo que antes: escribir peticiones.</p>
-<p>Un detalle importante: <strong>el modelo no sabe nada de MCP</strong>. Recibe descripciones de herramientas y genera peticiones, igual que en el notebook anterior. Es el host quien obtiene esas descripciones de los servidores y quien les traslada las peticiones.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=271be82a">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="4.-Qu%C3%A9-puede-ofrecer-un-servidor"><strong>4. Qué puede ofrecer un servidor</strong><a class="anchor-link" href="#4.-Qu%C3%A9-puede-ofrecer-un-servidor">¶</a></h2><p>Un servidor MCP puede ofrecer tres tipos de cosas:</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>Qué es</th>
-<th>Quién decide usarlo</th>
-<th>Ejemplo en nuestro cuaderno</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Herramientas</strong> (<em>tools</em>)</td>
-<td>Funciones que el modelo puede pedir que se ejecuten</td>
-<td>El modelo</td>
-<td>Consultar la nota de un alumno</td>
-</tr>
-<tr>
-<td><strong>Recursos</strong> (<em>resources</em>)</td>
-<td>Datos que la aplicación puede leer y añadir al contexto</td>
-<td>La aplicación</td>
-<td>La lista de alumnos del cuaderno</td>
-</tr>
-<tr>
-<td><strong>Plantillas</strong> (<em>prompts</em>)</td>
-<td>Peticiones ya preparadas que el usuario puede elegir</td>
-<td>El usuario</td>
-<td>«Redacta un informe para la familia de…»</td>
-</tr>
-</tbody>
-</table>
-<p>Las <strong>herramientas</strong> son las que ya conocemos, y son con diferencia lo más utilizado. Los <strong>recursos</strong> son información de consulta: un documento, una tabla, el contenido de un archivo. Las <strong>plantillas</strong> son peticiones preparadas por quien conoce bien el servidor, para que el usuario no tenga que redactarlas desde cero.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ec97034d">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="5.-Nuestro-primer-servidor-MCP"><strong>5. Nuestro primer servidor MCP</strong><a class="anchor-link" href="#5.-Nuestro-primer-servidor-MCP">¶</a></h2><p>Vamos a convertir el cuaderno de notas en un servidor MCP. Necesitas la biblioteca oficial de MCP para Python, en su versión 2 o posterior. Si no la tienes, instálala desde una terminal:</p>
-<pre><code>pip install "mcp&gt;=2"
-</code></pre>
-<p>Un servidor MCP es un programa independiente, así que lo guardamos en su propio archivo. La siguiente celda empieza con <code>%%writefile</code>, una orden de Jupyter que, en lugar de ejecutar el contenido de la celda, <strong>lo guarda en un archivo</strong>. Al ejecutarla se crea <code>servidor_cuaderno.py</code> junto al notebook.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=53cb1cd2">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=01783549">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7956,47 +7867,23 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="o">%%writefile</span> servidor_cuaderno.py
-<span class="kn">from</span><span class="w"> </span><span class="nn">mcp.server.mcpserver</span><span class="w"> </span><span class="kn">import</span> <span class="n">MCPServer</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
 
-<span class="n">servidor</span> <span class="o">=</span> <span class="n">MCPServer</span><span class="p">(</span><span class="s2">"cuaderno-del-profesor"</span><span class="p">)</span>
+<span class="c1"># LM Studio no exige una clave real, pero la biblioteca necesita que escribamos alguna.</span>
+<span class="n">cliente</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="s2">"http://localhost:1234/v1"</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">"lm-studio"</span><span class="p">)</span>
 
-<span class="n">CUADERNO</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"Lucía"</span><span class="p">:</span>  <span class="p">{</span><span class="s2">"Matemáticas"</span><span class="p">:</span> <span class="mf">7.5</span><span class="p">,</span> <span class="s2">"Lengua"</span><span class="p">:</span> <span class="mf">8.5</span><span class="p">},</span>
-    <span class="s2">"Marcos"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"Matemáticas"</span><span class="p">:</span> <span class="mf">5.5</span><span class="p">,</span> <span class="s2">"Lengua"</span><span class="p">:</span> <span class="mf">9.25</span><span class="p">},</span>
-    <span class="s2">"Irene"</span><span class="p">:</span>  <span class="p">{</span><span class="s2">"Matemáticas"</span><span class="p">:</span> <span class="mf">9.5</span><span class="p">,</span> <span class="s2">"Lengua"</span><span class="p">:</span> <span class="mf">6.75</span><span class="p">},</span>
-<span class="p">}</span>
+<span class="n">MODELO</span> <span class="o">=</span> <span class="s2">"qwen/qwen3-4b-2507"</span>                      <span class="c1"># responde directamente</span>
+<span class="n">MODELO_RAZONADOR</span> <span class="o">=</span> <span class="s2">"qwen/qwen3-4b-thinking-2507"</span>   <span class="c1"># razona antes de responder</span>
 
-<span class="nd">@servidor</span><span class="o">.</span><span class="n">tool</span><span class="p">()</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">consultar_nota</span><span class="p">(</span><span class="n">alumno</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">asignatura</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Consulta en el cuaderno del profesor la nota de un alumno en una asignatura."""</span>
-    <span class="k">if</span> <span class="n">alumno</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">CUADERNO</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"No hay ningún alumno llamado </span><span class="si">{</span><span class="n">alumno</span><span class="si">}</span><span class="s2"> en el cuaderno."</span>
-    <span class="k">if</span> <span class="n">asignatura</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">CUADERNO</span><span class="p">[</span><span class="n">alumno</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">alumno</span><span class="si">}</span><span class="s2"> no tiene nota en </span><span class="si">{</span><span class="n">asignatura</span><span class="si">}</span><span class="s2">."</span>
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">CUADERNO</span><span class="p">[</span><span class="n">alumno</span><span class="p">][</span><span class="n">asignatura</span><span class="p">])</span>
-
-<span class="nd">@servidor</span><span class="o">.</span><span class="n">tool</span><span class="p">()</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">nota_media</span><span class="p">(</span><span class="n">alumno</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Calcula la nota media de un alumno entre todas sus asignaturas."""</span>
-    <span class="k">if</span> <span class="n">alumno</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">CUADERNO</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"No hay ningún alumno llamado </span><span class="si">{</span><span class="n">alumno</span><span class="si">}</span><span class="s2"> en el cuaderno."</span>
-    <span class="n">notas</span> <span class="o">=</span> <span class="n">CUADERNO</span><span class="p">[</span><span class="n">alumno</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">notas</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">notas</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
-
-<span class="nd">@servidor</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s2">"cuaderno://alumnos"</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">lista_de_alumnos</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Lista de los alumnos que aparecen en el cuaderno."""</span>
-    <span class="k">return</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CUADERNO</span><span class="p">)</span>
-
-<span class="nd">@servidor</span><span class="o">.</span><span class="n">prompt</span><span class="p">()</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">informe_para_la_familia</span><span class="p">(</span><span class="n">alumno</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Plantilla para redactar un informe breve dirigido a la familia de un alumno."""</span>
-    <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"Consulta las notas de </span><span class="si">{</span><span class="n">alumno</span><span class="si">}</span><span class="s2"> y redacta un informe de tres frases para su familia, "</span>
-            <span class="s2">"en tono cercano y constructivo."</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
-    <span class="n">servidor</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>      <span class="c1"># por defecto se comunica por la entrada y la salida estándar (stdio)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">disponibles</span> <span class="o">=</span> <span class="p">[</span><span class="n">modelo</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">modelo</span> <span class="ow">in</span> <span class="n">cliente</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">list</span><span class="p">()]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Conexión correcta. Modelos disponibles en LM Studio:"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">nombre</span> <span class="ow">in</span> <span class="n">disponibles</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"  -"</span><span class="p">,</span> <span class="n">nombre</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"No se ha podido conectar con LM Studio."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Comprueba que está abierto y que el servidor local está en marcha."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Detalle:"</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8009,46 +7896,30 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Writing servidor_cuaderno.py
+<pre>Conexión correcta. Modelos disponibles en LM Studio:
+  - qwen/qwen3-4b-thinking-2507
+  - google/gemma-4-e4b
+  - qwen3.5-4b
+  - text-embedding-nomic-embed-text-v1.5
+  - qwen/qwen3-4b-2507
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7627ae16">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=947de1a4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El archivo es corto y casi todo te resultará familiar:</p>
-<ul>
-<li><code>MCPServer("cuaderno-del-profesor")</code> crea el servidor y le da un nombre.</li>
-<li>Las funciones <code>consultar_nota</code> y <code>nota_media</code> son funciones de Python normales. La línea <code>@servidor.tool()</code> que llevan encima las <strong>registra como herramientas</strong>.</li>
-<li><code>@servidor.resource("cuaderno://alumnos")</code> registra un <strong>recurso</strong>, identificado por una dirección, igual que una página web.</li>
-<li><code>@servidor.prompt()</code> registra una <strong>plantilla</strong>.</li>
-<li><code>servidor.run()</code> pone el servidor en marcha.</li>
-</ul>
-<p>Compáralo con el notebook anterior, donde tuvimos que escribir a mano la descripción de cada herramienta: su nombre, su explicación y sus parámetros. Aquí <strong>no hemos escrito ninguna descripción</strong>. La biblioteca la genera sola a partir de la propia función: toma el nombre de la función, la explicación del texto entre comillas triples y los parámetros de la cabecera (<code>alumno: str</code> indica que <code>alumno</code> es un texto).</p>
-<p>En muchos tutoriales verás <code>FastMCP</code> en lugar de <code>MCPServer</code>. Es el nombre que tenía esta misma clase en la versión 1 de la biblioteca.</p>
+<p>Si en tu lista los modelos tienen otro identificador, cámbialo en las variables <code>MODELO</code> y <code>MODELO_RAZONADOR</code>.</p>
+<p>Para no repetir código, definimos una pequeña función que envía una pregunta y devuelve la respuesta de la API. Fíjate en la <strong>temperatura 0</strong>: como vimos en LM Studio, con temperatura baja el modelo elige casi siempre el token más probable. Así, las diferencias que observemos se deberán a cómo preguntamos y no al azar.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ced2c2c5">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="6.-Conectarnos-al-servidor"><strong>6. Conectarnos al servidor</strong><a class="anchor-link" href="#6.-Conectarnos-al-servidor">¶</a></h2><p>El servidor está escrito, pero todavía no hay nada en marcha. Vamos a hacer de <strong>cliente</strong>: arrancaremos el servidor y le preguntaremos qué ofrece.</p>
-<p>La biblioteca <code>mcp</code> incluye una clase <code>Client</code> que se encarga de todo. Le indicamos cómo arrancar el servidor (con qué programa y qué archivo) y ella lo pone en marcha, se conecta y lo cierra al terminar. En el código verás las palabras <code>async</code> y <code>await</code>: son la forma que tiene Python de esperar la respuesta de otro programa sin quedarse bloqueado. No necesitas entenderlas a fondo; basta con saber que cada <code>await</code> significa «espera a que el servidor conteste».</p>
-<h3 id="%C2%BFQu%C3%A9-herramientas-ofreces?">¿Qué herramientas ofreces?<a class="anchor-link" href="#%C2%BFQu%C3%A9-herramientas-ofreces?">¶</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=b501c407">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=1af249f8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8056,60 +7927,31 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mcp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">StdioServerParameters</span>
-
-<span class="c1"># Cómo se arranca el servidor: con el mismo Python del notebook y nuestro archivo.</span>
-<span class="n">SERVIDOR</span> <span class="o">=</span> <span class="n">StdioServerParameters</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">"servidor_cuaderno.py"</span><span class="p">])</span>
-
-<span class="k">async</span> <span class="k">with</span> <span class="n">Client</span><span class="p">(</span><span class="n">SERVIDOR</span><span class="p">)</span> <span class="k">as</span> <span class="n">cliente_mcp</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Servidor:"</span><span class="p">,</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">server_info</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Versión del protocolo:"</span><span class="p">,</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">protocol_version</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
-    <span class="n">respuesta</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">list_tools</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">herramienta</span> <span class="ow">in</span> <span class="n">respuesta</span><span class="o">.</span><span class="n">tools</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"Herramienta:"</span><span class="p">,</span> <span class="n">herramienta</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"  Descripción:"</span><span class="p">,</span> <span class="n">herramienta</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"  Parámetros: "</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">herramienta</span><span class="o">.</span><span class="n">input_schema</span><span class="p">[</span><span class="s2">"properties"</span><span class="p">]))</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">preguntar</span><span class="p">(</span><span class="n">pregunta</span><span class="p">,</span> <span class="n">modelo</span><span class="o">=</span><span class="n">MODELO</span><span class="p">,</span> <span class="n">temperatura</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Envía una pregunta al modelo y devuelve la respuesta de la API."""</span>
+    <span class="k">return</span> <span class="n">cliente</span><span class="o">.</span><span class="n">responses</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">modelo</span><span class="p">,</span> <span class="nb">input</span><span class="o">=</span><span class="n">pregunta</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temperatura</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Servidor: cuaderno-del-profesor
-Versión del protocolo: 2026-07-28
-
-Herramienta: consultar_nota
-  Descripción: Consulta en el cuaderno del profesor la nota de un alumno en una asignatura.
-  Parámetros:  ['alumno', 'asignatura']
-Herramienta: nota_media
-  Descripción: Calcula la nota media de un alumno entre todas sus asignaturas.
-  Parámetros:  ['alumno']
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=60957bbf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0ee843e8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El servidor nos ha contestado con sus dos herramientas, cada una con su nombre, su descripción y sus parámetros: justo la información que en el notebook anterior escribíamos a mano. A este paso se le llama <strong>descubrimiento</strong>: el cliente no necesita saber de antemano qué ofrece un servidor; se lo pregunta.</p>
-<h3 id="Ejecuta-esta-herramienta">Ejecuta esta herramienta<a class="anchor-link" href="#Ejecuta-esta-herramienta">¶</a></h3>
+<h2 id="3.-D%C3%B3nde-falla-la-respuesta-directa"><strong>3. Dónde falla la respuesta directa</strong><a class="anchor-link" href="#3.-D%C3%B3nde-falla-la-respuesta-directa">¶</a></h2><p>Empecemos con un problema que cualquier alumno de primaria resolvería con papel y lápiz:</p>
+<blockquote>
+<p>Una profesora compra 23 cajas con 12 rotuladores cada una. Reparte 8 rotuladores a cada uno de sus 27 alumnos. ¿Cuántos rotuladores le sobran?</p>
+</blockquote>
+<p>La solución requiere tres operaciones: 23 × 12 = 276 rotuladores comprados, 27 × 8 = 216 repartidos y 276 − 216 = <strong>60</strong> sobrantes.</p>
+<p>Se lo planteamos al modelo pidiéndole solo el resultado:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=512e09c1">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=3fc002c3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8117,12 +7959,14 @@ Herramienta: nota_media
 <div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">Client</span><span class="p">(</span><span class="n">SERVIDOR</span><span class="p">)</span> <span class="k">as</span> <span class="n">cliente_mcp</span><span class="p">:</span>
-    <span class="n">resultado</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">call_tool</span><span class="p">(</span><span class="s2">"consultar_nota"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"alumno"</span><span class="p">:</span> <span class="s2">"Lucía"</span><span class="p">,</span> <span class="s2">"asignatura"</span><span class="p">:</span> <span class="s2">"Matemáticas"</span><span class="p">})</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Nota de Lucía en Matemáticas:"</span><span class="p">,</span> <span class="n">resultado</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">problema</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"Una profesora compra 23 cajas con 12 rotuladores cada una. "</span>
+            <span class="s2">"Reparte 8 rotuladores a cada uno de sus 27 alumnos. "</span>
+            <span class="s2">"¿Cuántos rotuladores le sobran?"</span><span class="p">)</span>
 
-    <span class="n">resultado</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">call_tool</span><span class="p">(</span><span class="s2">"nota_media"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"alumno"</span><span class="p">:</span> <span class="s2">"Irene"</span><span class="p">})</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Nota media de Irene:"</span><span class="p">,</span> <span class="n">resultado</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<span class="n">DIRECTA</span> <span class="o">=</span> <span class="s2">" Responde únicamente con el resultado, sin explicación."</span>
+
+<span class="n">respuesta_directa</span> <span class="o">=</span> <span class="n">preguntar</span><span class="p">(</span><span class="n">problema</span> <span class="o">+</span> <span class="n">DIRECTA</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">respuesta_directa</span><span class="o">.</span><span class="n">output_text</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8135,26 +7979,36 @@ Herramienta: nota_media
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Nota de Lucía en Matemáticas: 7.5
-Nota media de Irene: 8.12
+<pre>14
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=41cf06e1">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=442d6713">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Fíjate en lo que acaba de ocurrir: <strong>hemos usado las herramientas sin ningún modelo de lenguaje</strong>. MCP no es inteligencia artificial; es fontanería. Se ocupa únicamente de que un programa pueda preguntar a otro qué sabe hacer y pedirle que lo haga.</p>
-<h3 id="Recursos-y-plantillas">Recursos y plantillas<a class="anchor-link" href="#Recursos-y-plantillas">¶</a></h3><p>El mismo cliente sirve para leer el recurso y para obtener la plantilla:</p>
+<p>El modelo responde <strong>14</strong>. La respuesta correcta es 60.</p>
+<p>No es que el modelo «no sepa multiplicar». Lo que ocurre es que le hemos pedido algo muy difícil: que el primer token que genere sea ya el resultado final de tres operaciones encadenadas. Para acertar tendría que calcular 276 y 216 «de cabeza», en un solo paso de cálculo de la red, sin poder apuntarlos en ningún sitio. Lo que produce es un número con aspecto razonable para un problema de este tipo. Es el mismo fenómeno que ya conocemos: una continuación verosímil que no es correcta.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=09132da3">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d74fb724">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="4.-Pensar-paso-a-paso:-la-cadena-de-pensamiento"><strong>4. Pensar paso a paso: la cadena de pensamiento</strong><a class="anchor-link" href="#4.-Pensar-paso-a-paso:-la-cadena-de-pensamiento">¶</a></h2><p>Hagamos un único cambio. Mismo modelo, mismo problema, misma temperatura. Solo cambiamos la frase final de la petición:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bb7220d2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8162,13 +8016,10 @@ Nota media de Irene: 8.12
 <div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">async</span> <span class="k">with</span> <span class="n">Client</span><span class="p">(</span><span class="n">SERVIDOR</span><span class="p">)</span> <span class="k">as</span> <span class="n">cliente_mcp</span><span class="p">:</span>
-    <span class="n">recurso</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">read_resource</span><span class="p">(</span><span class="s2">"cuaderno://alumnos"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Recurso cuaderno://alumnos →"</span><span class="p">,</span> <span class="n">recurso</span><span class="o">.</span><span class="n">contents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">PASO_A_PASO</span> <span class="o">=</span> <span class="s2">" Razona paso a paso y termina con una línea que empiece por «Respuesta:»."</span>
 
-    <span class="n">plantilla</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">get_prompt</span><span class="p">(</span><span class="s2">"informe_para_la_familia"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"alumno"</span><span class="p">:</span> <span class="s2">"Irene"</span><span class="p">})</span>
-    <span class="n">texto_plantilla</span> <span class="o">=</span> <span class="n">plantilla</span><span class="o">.</span><span class="n">messages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">text</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Plantilla →"</span><span class="p">,</span> <span class="n">texto_plantilla</span><span class="p">)</span>
+<span class="n">respuesta_pasos</span> <span class="o">=</span> <span class="n">preguntar</span><span class="p">(</span><span class="n">problema</span> <span class="o">+</span> <span class="n">PASO_A_PASO</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">respuesta_pasos</span><span class="o">.</span><span class="n">output_text</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8181,64 +8032,72 @@ Nota media de Irene: 8.12
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Recurso cuaderno://alumnos → Lucía, Marcos, Irene
-Plantilla → Consulta las notas de Irene y redacta un informe de tres frases para su familia, en tono cercano y constructivo.
+<pre>Vamos a resolver el problema paso a paso:
+
+1. **Cálculo total de rotuladores comprados:**
+
+   La profesora compra 23 cajas, y cada caja tiene 12 rotuladores.
+
+   Entonces, el número total de rotuladores es:
+
+   \[
+   23 \times 12 = 276
+   \]
+
+2. **Cálculo total de rotuladores repartidos a los alumnos:**
+
+   Tiene 27 alumnos, y reparte 8 rotuladores a cada uno.
+
+   Entonces, el número total de rotuladores repartidos es:
+
+   \[
+   27 \times 8 = 216
+   \]
+
+3. **Cálculo de los rotuladores que le sobran:**
+
+   Restamos los rotuladores repartidos del total comprado:
+
+   \[
+   276 - 216 = 60
+   \]
+
+Por lo tanto, le sobran 60 rotuladores.
+
+Respuesta: 60
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=76a5f177">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bf188c83">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El recurso nos devuelve la lista de alumnos. La plantilla nos devuelve una petición ya redactada, en la que ha colocado el nombre que le hemos indicado. La usaremos más adelante.</p>
+<p>Ahora la respuesta es <strong>60</strong>, la correcta. (Los símbolos <code>\[</code>, <code>\times</code> y <code>\]</code> son la forma en la que el modelo escribe fórmulas en LaTeX; en una aplicación de chat se verían como expresiones matemáticas.)</p>
+<p>El modelo no ha aprendido nada entre una celda y la otra. Sus parámetros son exactamente los mismos. Lo único que ha cambiado es que le hemos dejado escribir los pasos intermedios antes de dar el resultado.</p>
+<p>Esta técnica se llama <strong>cadena de pensamiento</strong> o, en inglés, <em><strong>chain of thought</strong></em> (abreviado CoT). La describió en 2022 un grupo de investigadores de Google, que mostraron que los modelos resolvían mucho mejor los problemas de aritmética y de lógica si en la petición se incluían ejemplos resueltos paso a paso. Ese mismo año, otro trabajo comprobó que ni siquiera hacían falta los ejemplos: bastaba con añadir a la pregunta la frase <em>«Let's think step by step»</em> («Pensemos paso a paso»). En una de las colecciones de problemas aritméticos que utilizaron, esa sola frase hizo que el modelo pasara de acertar aproximadamente el 18 % de los problemas a acertar el 79 %.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=12c272bc">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=94ee79e0">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="7.-Por-dentro:-los-mensajes-del-protocolo"><strong>7. Por dentro: los mensajes del protocolo</strong><a class="anchor-link" href="#7.-Por-dentro:-los-mensajes-del-protocolo">¶</a></h2><p>La clase <code>Client</code> nos ha ocultado los detalles. Vamos a mirar debajo, porque lo que hay es más sencillo de lo que parece.</p>
-<p>Cliente y servidor se comunican enviándose <strong>mensajes de texto en formato JSON</strong>, el mismo formato en el que el modelo escribía los argumentos de las herramientas. Cada petición indica un <strong>método</strong> (qué se pide) y unos <strong>parámetros</strong>. Los métodos principales son pocos:</p>
-<table>
-<thead>
-<tr>
-<th>Método</th>
-<th>Significado</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>tools/list</code></td>
-<td>¿Qué herramientas ofreces?</td>
-</tr>
-<tr>
-<td><code>tools/call</code></td>
-<td>Ejecuta esta herramienta con estos argumentos</td>
-</tr>
-<tr>
-<td><code>resources/list</code>, <code>resources/read</code></td>
-<td>¿Qué recursos tienes? Dame este</td>
-</tr>
-<tr>
-<td><code>prompts/list</code>, <code>prompts/get</code></td>
-<td>¿Qué plantillas tienes? Dame esta</td>
-</tr>
-</tbody>
-</table>
-<p>Para comprobarlo, vamos a prescindir de la clase <code>Client</code> y a escribir <strong>nosotros mismos</strong> el mensaje. La siguiente celda arranca el servidor, le envía una única línea de texto con una petición <code>tools/call</code> y muestra la línea que el servidor devuelve.</p>
+<div style="display:inline-block; background-color:#fff3cd; border:1px solid #f0c36d; border-left:6px solid #e0a800; border-radius:6px; padding:12px 16px; margin:12px 0; color:#333;">
+<b>La cadena de pensamiento consiste en pedir al modelo que escriba los pasos intermedios de su razonamiento antes de dar la respuesta final. El modelo es el mismo; lo que cambia es que ahora dispone de un sitio donde apuntar.</b>
+</div>
+<h3 id="Un-peque%C3%B1o-experimento">Un pequeño experimento<a class="anchor-link" href="#Un-peque%C3%B1o-experimento">¶</a></h3><p>Un solo ejemplo podría ser casualidad. Probemos con cinco problemas, cada uno planteado de las dos maneras. La función <code>respuesta_final</code> se queda con lo que el modelo escribe después de «Respuesta:».</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f2a48d1e">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=18ceb147">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8246,30 +8105,29 @@ Plantilla → Consulta las notas de Irene y redacta un informe de tres frases pa
 <div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
-
-<span class="n">peticion</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"jsonrpc"</span><span class="p">:</span> <span class="s2">"2.0"</span><span class="p">,</span>
-    <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"method"</span><span class="p">:</span> <span class="s2">"tools/call"</span><span class="p">,</span>
-    <span class="s2">"params"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"consultar_nota"</span><span class="p">,</span>
-        <span class="s2">"arguments"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"alumno"</span><span class="p">:</span> <span class="s2">"Marcos"</span><span class="p">,</span> <span class="s2">"asignatura"</span><span class="p">:</span> <span class="s2">"Lengua"</span><span class="p">},</span>
-        <span class="s2">"_meta"</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">"io.modelcontextprotocol/protocolVersion"</span><span class="p">:</span> <span class="s2">"2026-07-28"</span><span class="p">,</span>
-            <span class="s2">"io.modelcontextprotocol/clientInfo"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"notebook-11"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"1.0"</span><span class="p">},</span>
-            <span class="s2">"io.modelcontextprotocol/clientCapabilities"</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="p">},</span>
-    <span class="p">},</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">problemas</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Rotuladores"</span><span class="p">:</span> <span class="p">(</span><span class="n">problema</span><span class="p">,</span> <span class="s2">"60"</span><span class="p">),</span>
+    <span class="s2">"Excursión"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"En un instituto hay 4 grupos de 1.º de ESO con 28 alumnos cada uno y 3 grupos de 2.º de ESO "</span>
+                  <span class="s2">"con 31 alumnos cada uno. A una excursión va el 75 </span><span class="si">% d</span><span class="s2">el alumnado de 1.º y dos tercios del "</span>
+                  <span class="s2">"alumnado de 2.º. ¿Cuántos alumnos van a la excursión?"</span><span class="p">,</span> <span class="s2">"146"</span><span class="p">),</span>
+    <span class="s2">"Horario"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"Una excursión sale a las 9:40. El viaje tiene tres trayectos de 47, 68 y 55 minutos, con dos "</span>
+                <span class="s2">"paradas de 25 minutos entre ellos. ¿A qué hora llega?"</span><span class="p">,</span> <span class="s2">"13:20"</span><span class="p">),</span>
+    <span class="s2">"Edades"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"Marta tiene el triple de edad que su hijo Leo. Dentro de 12 años tendrá el doble. "</span>
+               <span class="s2">"¿Cuántos años tiene Marta ahora?"</span><span class="p">,</span> <span class="s2">"36"</span><span class="p">),</span>
+    <span class="s2">"Depósito"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"Un depósito de 500 litros empieza lleno y pierde cada día un 10 </span><span class="si">% d</span><span class="s2">e lo que contiene. "</span>
+                 <span class="s2">"¿Cuántos litros quedan después de 3 días?"</span><span class="p">,</span> <span class="s2">"364,5"</span><span class="p">),</span>
 <span class="p">}</span>
 
-<span class="n">proceso</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s2">"servidor_cuaderno.py"</span><span class="p">],</span>
-                         <span class="nb">input</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">peticion</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
-                         <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">respuesta_final</span><span class="p">(</span><span class="n">texto</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Devuelve lo que el modelo escribe después de «Respuesta:»."""</span>
+    <span class="k">return</span> <span class="n">texto</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"Respuesta:"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-<span class="n">respuesta</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">proceso</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">respuesta</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Problema'</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'Correcta'</span><span class="si">:</span><span class="s2">&lt;9</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'Directa'</span><span class="si">:</span><span class="s2">&lt;14</span><span class="si">}</span><span class="s2"> Paso a paso"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">nombre</span><span class="p">,</span> <span class="p">(</span><span class="n">enunciado</span><span class="p">,</span> <span class="n">correcta</span><span class="p">)</span> <span class="ow">in</span> <span class="n">problemas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">directa</span> <span class="o">=</span> <span class="n">preguntar</span><span class="p">(</span><span class="n">enunciado</span> <span class="o">+</span> <span class="n">DIRECTA</span><span class="p">)</span><span class="o">.</span><span class="n">output_text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">pasos</span> <span class="o">=</span> <span class="n">respuesta_final</span><span class="p">(</span><span class="n">preguntar</span><span class="p">(</span><span class="n">enunciado</span> <span class="o">+</span> <span class="n">PASO_A_PASO</span><span class="p">)</span><span class="o">.</span><span class="n">output_text</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">nombre</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">correcta</span><span class="si">:</span><span class="s2">&lt;9</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">directa</span><span class="si">:</span><span class="s2">&lt;14</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">pasos</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8282,73 +8140,80 @@ Plantilla → Consulta las notas de Irene y redacta un informe de tres frases pa
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "content": [
-      {
-        "text": "9.25",
-        "type": "text"
-      }
-    ],
-    "isError": false,
-    "resultType": "complete",
-    "structuredContent": {
-      "result": "9.25"
-    },
-    "_meta": {
-      "io.modelcontextprotocol/serverInfo": {
-        "name": "cuaderno-del-profesor",
-        "version": ""
-      }
-    }
-  }
-}
+<pre>Problema     Correcta  Directa        Paso a paso
+--------------------------------------------------------------------------------
+Rotuladores  60        14             60
+Excursión    146       157            146 alumnos van a la excursión.
+Horario      13:20     16:30          13:20
+Edades       36        48             36 años.
+Depósito     364,5     348.29 litros  364.5 litros quedan después de 3 días.
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a37a1f73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=85a8f82f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Eso es todo: una línea de texto de ida y otra de vuelta.</p>
-<p>En la petición reconocerás el método (<code>tools/call</code>), el nombre de la herramienta y sus argumentos. El apartado <code>_meta</code> es la «tarjeta de presentación» del cliente: indica qué versión del protocolo habla y quién es. El campo <code>id</code> sirve para emparejar cada respuesta con su petición.</p>
-<p>En la respuesta, el resultado de la herramienta viene en <code>content</code>: un texto con el valor <code>9.25</code>. El campo <code>isError</code> indica que la ejecución ha ido bien.</p>
-<p>Este formato de mensajes, con <code>jsonrpc</code>, <code>method</code>, <code>params</code> e <code>id</code>, se llama <strong>JSON-RPC</strong> y es anterior a MCP. MCP no inventa una forma nueva de comunicarse: aprovecha una que ya existía y define qué métodos hay y qué significan.</p>
-<h3 id="C%C3%B3mo-viajan-los-mensajes">Cómo viajan los mensajes<a class="anchor-link" href="#C%C3%B3mo-viajan-los-mensajes">¶</a></h3><p>Queda una pregunta: ¿por dónde viajan esas líneas de texto? MCP define dos <strong>transportes</strong>:</p>
+<p>El resultado es rotundo: <strong>cinco fallos de cinco</strong> con la respuesta directa y <strong>cinco aciertos de cinco</strong> razonando paso a paso. (El modelo escribe los decimales con punto, a la inglesa: 364.5 es nuestro 364,5.)</p>
+<p>Observa también las respuestas directas equivocadas: 157 alumnos, las 16:30, 48 años… Ninguna es disparatada. Todas tienen el aspecto que tendría una respuesta correcta, y por eso son peligrosas: si no conociéramos la solución, nada en ellas nos haría sospechar.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ce558ac8">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="5.-Por-qu%C3%A9-funciona"><strong>5. Por qué funciona</strong><a class="anchor-link" href="#5.-Por-qu%C3%A9-funciona">¶</a></h2><div style="text-align:center">
+<img alt="Con la respuesta directa no hay dónde apuntar; razonando, cada paso escrito se convierte en contexto para el siguiente" src="imgs/razonamiento/razonamiento-01-directa-vs-pasos.png" style="max-width:100%;height:auto;border:1px solid #dae1e8;border-radius:8px;" width="75%"/>
+</div>
+<p style="text-align:center"><em>Con la respuesta directa no hay dónde apuntar; razonando, cada paso escrito se convierte en contexto para el siguiente</em></p>
+<p>La explicación está en la <strong>generación autorregresiva</strong> que estudiamos en el notebook 07: cada token que el modelo escribe se añade al contexto y se utiliza para calcular el siguiente.</p>
+<p>Cuando el modelo escribe «23 × 12 = 276», ese 276 ya no tiene que recordarlo: está ahí, en el contexto, a la vista. Para escribir el paso siguiente solo tiene que resolver una operación sencilla, y para la resta final le basta con mirar los dos números que él mismo ha dejado escritos. Un problema difícil de tres pasos se ha convertido en tres problemas fáciles de un paso.</p>
+<p>Dicho de otra forma:</p>
 <ul>
-<li><strong>stdio</strong> (entrada y salida estándar). El host arranca el servidor como un programa más de nuestro ordenador y se comunica con él directamente, sin pasar por la red. Es lo que acabamos de hacer. Se usa con servidores <strong>locales</strong>: los que acceden a nuestros archivos o a nuestros programas.</li>
-<li><strong>HTTP</strong>. El servidor está en otra máquina y los mensajes viajan por internet, igual que al visitar una página web. Se usa con servidores <strong>remotos</strong>, como los que ofrecen muchas empresas para dar acceso a sus servicios.</li>
+<li><strong>El texto generado hace de memoria de trabajo.</strong> Es el papel y el lápiz del modelo.</li>
+<li><strong>Más tokens significan más cálculo.</strong> Cada token generado es una pasada completa por la red neuronal. Una respuesta de 2 tokens dispone de 2 pasadas para resolver el problema; una de 230 tokens dispone de 230.</li>
+<li><strong>Cada paso se parece a algo conocido.</strong> Durante el entrenamiento, el modelo ha visto muchísimos textos donde aparece una multiplicación sencilla seguida de su resultado. Ha visto muchos menos donde un enunciado largo va seguido directamente de la solución.</li>
 </ul>
-<p>Los mensajes son los mismos en los dos casos; solo cambia el camino. En la versión <code>2026-07-28</code> del protocolo, además, cada petición es <strong>autosuficiente</strong>: lleva consigo todo lo que el servidor necesita para atenderla, como hemos visto en el apartado <code>_meta</code>. Las versiones anteriores exigían un saludo inicial entre cliente y servidor antes de poder pedir nada.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7292bc2a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=21ba1f91">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="8.-Unir-las-piezas:-el-modelo-usa-el-servidor"><strong>8. Unir las piezas: el modelo usa el servidor</strong><a class="anchor-link" href="#8.-Unir-las-piezas:-el-modelo-usa-el-servidor">¶</a></h2><p>Ya tenemos un servidor que ofrece herramientas y un cliente que sabe pedirlas. Falta el modelo. Vamos a juntar este notebook con el anterior y a construir nuestro propio <strong>host</strong>: un programa que</p>
-<ol>
-<li>pregunta al servidor MCP qué herramientas tiene;</li>
-<li>se las describe al modelo;</li>
-<li>cuando el modelo pide una, traslada la petición al servidor;</li>
-<li>devuelve el resultado al modelo.</li>
-</ol>
-<p>Para esta parte necesitas LM Studio con el servidor local activo y el modelo <code>qwen/qwen3-4b-2507</code>, como en los notebooks anteriores.</p>
+<div style="display:inline-block; background-color:#fff3cd; border:1px solid #f0c36d; border-left:6px solid #e0a800; border-radius:6px; padding:12px 16px; margin:12px 0; color:#333;">
+<b>Un modelo de lenguaje no puede pensar en silencio y luego contestar: razona escribiendo. Si no le dejamos escribir el razonamiento, no hay razonamiento.</b>
+</div>
+<p>Esta idea tiene una consecuencia práctica inmediata. Cuando una tarea requiera varios pasos (corregir un ejercicio, comparar dos documentos, planificar una actividad), una instrucción como «responde solo sí o no» o «dame únicamente la nota» puede empeorar el resultado. Es preferible pedir primero el análisis y después la conclusión.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=851931fb">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4b2bfb92">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="6.-Variantes-de-la-cadena-de-pensamiento"><strong>6. Variantes de la cadena de pensamiento</strong><a class="anchor-link" href="#6.-Variantes-de-la-cadena-de-pensamiento">¶</a></h2><p>A partir de la idea original surgieron pronto varias mejoras. Veamos tres.</p>
+<h3 id="6.1.-Ense%C3%B1ar-con-un-ejemplo-(few-shot)">6.1. Enseñar con un ejemplo (<em>few-shot</em>)<a class="anchor-link" href="#6.1.-Ense%C3%B1ar-con-un-ejemplo-(few-shot)">¶</a></h3><p>En lugar de dar la instrucción «razona paso a paso», podemos <strong>mostrar un ejemplo resuelto</strong> y dejar que el modelo lo imite. Así era, de hecho, la propuesta original de 2022. A esta forma de preguntar, en la que la petición incluye uno o varios ejemplos, se la llama <em><strong>few-shot</strong></em> («con unos pocos ejemplos»).</p>
+<p>En la siguiente celda no hay ninguna instrucción sobre cómo razonar. Solo hay un problema resuelto y, a continuación, el problema de la excursión con la palabra «Razonamiento:» esperando continuación.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=96e82488">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8356,68 +8221,80 @@ Plantilla → Consulta las notas de Irene y redacta un informe de tres frases pa
 <div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">ejemplo</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"Pregunta: En una biblioteca hay 6 estanterías con 45 libros cada una. "</span>
+           <span class="s2">"Se prestan 38 libros y se devuelven 15. ¿Cuántos libros hay ahora?</span><span class="se">\n</span><span class="s2">"</span>
+           <span class="s2">"Razonamiento: Al principio hay 6 × 45 = 270 libros. Tras los préstamos quedan 270 − 38 = 232. "</span>
+           <span class="s2">"Con las devoluciones hay 232 + 15 = 247.</span><span class="se">\n</span><span class="s2">"</span>
+           <span class="s2">"Respuesta: 247</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="n">cliente</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="s2">"http://localhost:1234/v1"</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">"lm-studio"</span><span class="p">)</span>
-<span class="n">MODELO</span> <span class="o">=</span> <span class="s2">"qwen/qwen3-4b-2507"</span>
+<span class="n">nuevo_problema</span> <span class="o">=</span> <span class="n">problemas</span><span class="p">[</span><span class="s2">"Excursión"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">a_formato_openai</span><span class="p">(</span><span class="n">herramienta</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Convierte la descripción de una herramienta MCP al formato de la API de OpenAI."""</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"function"</span><span class="p">,</span>
-        <span class="s2">"name"</span><span class="p">:</span> <span class="n">herramienta</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="s2">"description"</span><span class="p">:</span> <span class="n">herramienta</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
-        <span class="s2">"parameters"</span><span class="p">:</span> <span class="n">herramienta</span><span class="o">.</span><span class="n">input_schema</span><span class="p">,</span>
-    <span class="p">}</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">conversar_con_mcp</span><span class="p">(</span><span class="n">pregunta</span><span class="p">,</span> <span class="n">modelo</span><span class="o">=</span><span class="n">MODELO</span><span class="p">,</span> <span class="n">max_rondas</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Responde a una pregunta dejando que el modelo use las herramientas del servidor MCP."""</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"PREGUNTA:"</span><span class="p">,</span> <span class="n">pregunta</span><span class="p">)</span>
-    <span class="k">async</span> <span class="k">with</span> <span class="n">Client</span><span class="p">(</span><span class="n">SERVIDOR</span><span class="p">)</span> <span class="k">as</span> <span class="n">cliente_mcp</span><span class="p">:</span>
-        <span class="n">respuesta_mcp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">list_tools</span><span class="p">()</span>                      <span class="c1"># 1. descubrir</span>
-        <span class="n">herramientas</span> <span class="o">=</span> <span class="p">[</span><span class="n">a_formato_openai</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">respuesta_mcp</span><span class="o">.</span><span class="n">tools</span><span class="p">]</span>   <span class="c1"># 2. describir al modelo</span>
-        <span class="n">conversacion</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"role"</span><span class="p">:</span> <span class="s2">"user"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="n">pregunta</span><span class="p">}]</span>
-
-        <span class="k">for</span> <span class="n">ronda</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_rondas</span><span class="p">):</span>
-            <span class="n">respuesta</span> <span class="o">=</span> <span class="n">cliente</span><span class="o">.</span><span class="n">responses</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">modelo</span><span class="p">,</span> <span class="nb">input</span><span class="o">=</span><span class="n">conversacion</span><span class="p">,</span>
-                                                 <span class="n">tools</span><span class="o">=</span><span class="n">herramientas</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="n">llamadas</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">respuesta</span><span class="o">.</span><span class="n">output</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"function_call"</span><span class="p">]</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">llamadas</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">"RESPUESTA:"</span><span class="p">,</span> <span class="n">respuesta</span><span class="o">.</span><span class="n">output_text</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-                <span class="k">return</span>
-
-            <span class="n">conversacion</span> <span class="o">+=</span> <span class="n">respuesta</span><span class="o">.</span><span class="n">output</span>
-            <span class="k">for</span> <span class="n">llamada</span> <span class="ow">in</span> <span class="n">llamadas</span><span class="p">:</span>
-                <span class="n">argumentos</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">llamada</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span>
-                <span class="n">resultado</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cliente_mcp</span><span class="o">.</span><span class="n">call_tool</span><span class="p">(</span><span class="n">llamada</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">argumentos</span><span class="p">)</span>   <span class="c1"># 3. pedir al servidor</span>
-                <span class="n">texto</span> <span class="o">=</span> <span class="n">resultado</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"   → el modelo pide:            </span><span class="si">{</span><span class="n">llamada</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">llamada</span><span class="o">.</span><span class="n">arguments</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"   ← el servidor MCP devuelve:  </span><span class="si">{</span><span class="n">texto</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                <span class="n">conversacion</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"function_call_output"</span><span class="p">,</span>          <span class="c1"># 4. devolver al modelo</span>
-                                     <span class="s2">"call_id"</span><span class="p">:</span> <span class="n">llamada</span><span class="o">.</span><span class="n">call_id</span><span class="p">,</span>
-                                     <span class="s2">"output"</span><span class="p">:</span> <span class="n">texto</span><span class="p">})</span>
+<span class="n">respuesta_ejemplo</span> <span class="o">=</span> <span class="n">preguntar</span><span class="p">(</span><span class="n">ejemplo</span> <span class="o">+</span> <span class="s2">"Pregunta: "</span> <span class="o">+</span> <span class="n">nuevo_problema</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Razonamiento:"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">respuesta_ejemplo</span><span class="o">.</span><span class="n">output_text</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=248772c1">
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Tenemos que calcular cuántos alumnos van a la excursión, considerando que:
+
+- Hay 4 grupos de 1º de ESO con 28 alumnos cada uno.
+- Hay 3 grupos de 2º de ESO con 31 alumnos cada uno.
+- El 75% del alumnado de 1º va a la excursión.
+- Dos tercios del alumnado de  2º va a la excursión.
+
+**Paso 1: Calcular el número total de alumnos de 1º de ESO**
+
+4 grupos × 28 alumnos = 112 alumnos en 1º de ESO.
+
+El 75% de ellos va a la excursión:
+
+75% de 112 = \( 0.75 \times 112 = 84 \) alumnos.
+
+**Paso 2: Calcular el número total de alumnos de 2º de ESO**
+
+3 grupos × 31 alumnos = 93 alumnos en 2º de ESO.
+
+Dos tercios de ellos van a la excursión:
+
+\( \frac{2}{3} \times 93 = 62 \) alumnos.
+
+**Paso 3: Sumar los que van de 1º y de 2º**
+
+84 + 62 = 146 alumnos.
+
+**Respuesta final:**
+
+146 alumnos van a la excursión.  
+
+✅ Respuesta: **146**
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=53bbff4d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Si comparas esta función con <code>conversar</code>, la del notebook anterior, verás que el bucle es idéntico. Solo cambian dos cosas, y son precisamente las que aporta MCP:</p>
-<ul>
-<li><strong>Las descripciones no están escritas en nuestro programa.</strong> Se las pedimos al servidor con <code>list_tools</code>.</li>
-<li><strong>Las funciones no están en nuestro programa.</strong> En lugar de ejecutar una función de Python, enviamos la petición al servidor con <code>call_tool</code>.</li>
-</ul>
-<p>Nuestro programa ya no sabe nada de notas ni de alumnos. Podríamos conectarlo a cualquier otro servidor MCP cambiando una sola línea, la que define <code>SERVIDOR</code>, y el resto seguiría funcionando.</p>
+<p>El modelo ha entendido lo que se esperaba de él: ha razonado por pasos y ha llegado a 146, la respuesta correcta, sin que se lo pidiéramos con palabras. No ha copiado el formato compacto de nuestro ejemplo (ha preferido su estilo habitual, con títulos y negritas), pero sí la idea de razonar antes de responder.</p>
+<p>Los ejemplos son especialmente útiles cuando queremos que el razonamiento siga un método concreto, por ejemplo los criterios de una rúbrica de corrección.</p>
+<h3 id="6.2.-Preguntar-varias-veces-y-votar-(autoconsistencia)">6.2. Preguntar varias veces y votar (autoconsistencia)<a class="anchor-link" href="#6.2.-Preguntar-varias-veces-y-votar-(autoconsistencia)">¶</a></h3><p>Con temperatura 0 el modelo da casi siempre la misma respuesta. Si subimos la temperatura, cada ejecución puede seguir un camino distinto. ¿Y si aprovechamos esa variedad? La idea de la <strong>autoconsistencia</strong> (<em>self-consistency</em>) es sencilla: hacemos la misma pregunta varias veces, dejamos que el modelo razone de formas diferentes y nos quedamos con <strong>la respuesta final más repetida</strong>. Si varios caminos distintos llegan al mismo resultado, es más probable que sea el correcto.</p>
+<p>Probémoslo con un acertijo clásico, cuya respuesta correcta es 8 días (al final del día 7 el caracol está a 7 metros; el día 8 sube 3 y sale):</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=bdaf74a8">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ed8bf61a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8425,9 +8302,29 @@ Plantilla → Consulta las notas de Irene y redacta un informe de tres frases pa
 <div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">await</span> <span class="n">conversar_con_mcp</span><span class="p">(</span><span class="s2">"¿Cuál es la nota media de Lucía?"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">()</span>
-<span class="k">await</span> <span class="n">conversar_con_mcp</span><span class="p">(</span><span class="s2">"¿Qué nota tiene Marcos en Lengua?"</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="n">BREVE</span> <span class="o">=</span> <span class="p">(</span><span class="s2">" Razona brevemente, en tres o cuatro frases como máximo, "</span>
+         <span class="s2">"y termina con una línea que empiece por «Respuesta:»."</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">votar</span><span class="p">(</span><span class="n">pregunta</span><span class="p">,</span> <span class="n">intentos</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Hace la misma pregunta varias veces con temperatura 0,8 y cuenta las respuestas finales."""</span>
+    <span class="n">cadenas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">finales</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">intentos</span><span class="p">):</span>
+        <span class="n">texto</span> <span class="o">=</span> <span class="n">preguntar</span><span class="p">(</span><span class="n">pregunta</span> <span class="o">+</span> <span class="n">BREVE</span><span class="p">,</span> <span class="n">temperatura</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span><span class="o">.</span><span class="n">output_text</span>
+        <span class="n">final</span> <span class="o">=</span> <span class="n">respuesta_final</span><span class="p">(</span><span class="n">texto</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+        <span class="n">cadenas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">texto</span><span class="p">)</span>
+        <span class="n">finales</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">final</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Intento </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">final</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">ganadora</span><span class="p">,</span> <span class="n">votos</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">finales</span><span class="p">)</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Respuesta más votada: </span><span class="si">{</span><span class="n">ganadora</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">votos</span><span class="si">}</span><span class="s2"> de </span><span class="si">{</span><span class="n">intentos</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cadenas</span>
+
+<span class="n">caracol</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"Un caracol está en el fondo de un pozo de 10 metros. Cada día sube 3 metros y cada noche "</span>
+           <span class="s2">"resbala 2. ¿Cuántos días tarda en salir del pozo?"</span><span class="p">)</span>
+
+<span class="n">cadenas_caracol</span> <span class="o">=</span> <span class="n">votar</span><span class="p">(</span><span class="n">caracol</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8440,45 +8337,31 @@ Plantilla → Consulta las notas de Irene y redacta un informe de tres frases pa
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>PREGUNTA: ¿Cuál es la nota media de Lucía?
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>   → el modelo pide:            nota_media({"alumno":"Lucía"})
-   ← el servidor MCP devuelve:  8.0
-RESPUESTA: La nota media de Lucía es de 8,0.
+<pre>Intento 1: 8 días
+Intento 2: 7 días
+Intento 3: 8 días
+Intento 4: 8 días
+Intento 5: 8 días
 
-PREGUNTA: ¿Qué nota tiene Marcos en Lengua?
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>   → el modelo pide:            consultar_nota({"alumno":"Marcos","asignatura":"Lengua"})
-   ← el servidor MCP devuelve:  9.25
-RESPUESTA: Marcos tiene una nota de 9.25 en Lengua.
+Respuesta más votada: 8 días (4 de 5)
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ce907a93">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b41882aa">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El modelo ha elegido en cada caso la herramienta adecuada entre las que ofrece el servidor, y las respuestas son correctas.</p>
-<h3 id="Usar-la-plantilla">Usar la plantilla<a class="anchor-link" href="#Usar-la-plantilla">¶</a></h3><p>Probemos ahora con la plantilla que obtuvimos en el apartado 6. El servidor nos dio la petición ya redactada; se la pasamos tal cual al modelo:</p>
+<p>En esta ejecución, cuatro de los cinco intentos responden 8 días y uno responde 7. Si solo hubiéramos preguntado una vez, podría habernos tocado el intento equivocado. Con la votación, el error queda en minoría. Como aquí interviene el azar, al ejecutar la celda en tu ordenador obtendrás otras cadenas y quizá otro reparto de votos.</p>
+<p>Leamos el intento que falló:</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=8f4ae526">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=33697fbd">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8486,7 +8369,7 @@ RESPUESTA: Marcos tiene una nota de 9.25 en Lengua.
 <div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">await</span> <span class="n">conversar_con_mcp</span><span class="p">(</span><span class="n">texto_plantilla</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">cadenas_caracol</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -8499,137 +8382,379 @@ RESPUESTA: Marcos tiene una nota de 9.25 en Lengua.
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>PREGUNTA: Consulta las notas de Irene y redacta un informe de tres frases para su familia, en tono cercano y constructivo.
+<pre>Cada día neto sube 1 metro (3 metros de día menos 2 de noche), pero al salir del pozo no vuelve a resbalar. Al día 7 sube hasta los 10 metros, pero como solo necesita salir, no resbala esa noche.  
+Así, al final del séptimo día, ya ha salido del pozo.  
+Respuesta: 7 días
 </pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=27178cd7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>El razonamiento empieza bien (un metro neto al día, y el último día ya no resbala), pero después afirma que el día 7 el caracol llega a los 10 metros, lo que no es cierto. Un solo paso incorrecto y toda la cadena termina en una respuesta equivocada, expresada con la misma seguridad que las demás.</p>
+<p>La autoconsistencia tiene un precio evidente: cinco intentos cuestan cinco veces más tiempo y más tokens. Y, como veremos en el apartado 8, no lo arregla todo.</p>
+<h3 id="6.3.-Explorar-varios-caminos-(Tree-of-Thoughts)">6.3. Explorar varios caminos (<em>Tree of Thoughts</em>)<a class="anchor-link" href="#6.3.-Explorar-varios-caminos-(Tree-of-Thoughts)">¶</a></h3><p>Una cadena de pensamiento es una línea recta: si un paso intermedio es malo, todo lo que viene después hereda el error, como acabamos de ver. En 2023 se propuso el <strong>árbol de pensamientos</strong> (<em>Tree of Thoughts</em>): en lugar de una sola cadena, el sistema genera varias continuaciones posibles en cada paso, las evalúa, sigue adelante por las más prometedoras y <strong>vuelve atrás</strong> cuando un camino no lleva a ningún sitio. Se parece a cómo exploramos las jugadas posibles en una partida de ajedrez.</p>
+<p>No lo programaremos aquí, pero quédate con la idea: ya no es una sola petición al modelo, sino un <strong>programa que organiza muchas peticiones</strong>. Esa forma de trabajar, con un programa que dirige al modelo paso a paso, es el germen de los <strong>agentes</strong> que estudiaremos más adelante.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86550e6f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="7.-Modelos-razonadores"><strong>7. Modelos razonadores</strong><a class="anchor-link" href="#7.-Modelos-razonadores">¶</a></h2><p>Hasta aquí, el razonamiento era cosa nuestra: teníamos que acordarnos de escribir «razona paso a paso». La siguiente pregunta era natural: si razonar antes de responder funciona tan bien, ¿por qué no <strong>entrenar a los modelos para que lo hagan siempre por sí mismos</strong>?</p>
+<p>Eso son los <strong>modelos razonadores</strong>. En septiembre de 2024 OpenAI presentó o1, el primer modelo de gran difusión entrenado para generar un razonamiento antes de cada respuesta. En enero de 2025, DeepSeek-R1 hizo lo mismo con pesos abiertos y mostrando el razonamiento completo al usuario. Hoy casi todas las familias de modelos tienen versiones razonadoras, incluidas las que podemos ejecutar en local: es lo que indican la etiqueta <strong>Thinking</strong> en el nombre de un modelo y el icono 💡 <strong>Reasoning</strong> de LM Studio que vimos en el notebook 08.</p>
+<div style="text-align:center">
+<img alt="Un modelo razonador genera primero un razonamiento y, a continuación, la respuesta que ve el usuario" src="imgs/razonamiento/razonamiento-02-modelo-razonador.png" style="max-width:100%;height:auto;border:1px solid #dae1e8;border-radius:8px;" width="75%"/>
+</div>
+<p style="text-align:center"><em>Un modelo razonador genera primero un razonamiento y, a continuación, la respuesta que ve el usuario</em></p>
+<p>El funcionamiento no encierra ningún misterio nuevo. El modelo sigue generando token a token, pero ha sido entrenado para producir primero un bloque de razonamiento, separado por unas marcas especiales, y después la respuesta. Los tokens de ese bloque se llaman <strong>tokens de razonamiento</strong>.</p>
+<p>Vamos a verlo. Enviamos el problema de los rotuladores a la versión <em>Thinking</em> de Qwen3, <strong>tal cual, sin ninguna instrucción sobre cómo responder</strong>. La respuesta de la API llega ahora en dos partes: un elemento de tipo <code>reasoning</code> con el razonamiento y un elemento de tipo <code>message</code> con la respuesta.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=c00100c3">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">respuesta_razonador</span> <span class="o">=</span> <span class="n">preguntar</span><span class="p">(</span><span class="n">problema</span><span class="p">,</span> <span class="n">modelo</span><span class="o">=</span><span class="n">MODELO_RAZONADOR</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">elemento</span> <span class="ow">in</span> <span class="n">respuesta_razonador</span><span class="o">.</span><span class="n">output</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">elemento</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"reasoning"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"=== RAZONAMIENTO ==="</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parte</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">parte</span> <span class="ow">in</span> <span class="n">elemento</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="n">elemento</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"message"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"=== RESPUESTA ==="</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">respuesta_razonador</span><span class="o">.</span><span class="n">output_text</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>   → el modelo pide:            consultar_nota({"alumno":"Irene","asignatura":"Matemáticas"})
-   ← el servidor MCP devuelve:  9.5
-   → el modelo pide:            consultar_nota({"alumno":"Irene","asignatura":"Ciencias"})
-   ← el servidor MCP devuelve:  Irene no tiene nota en Ciencias.
-   → el modelo pide:            nota_media({"alumno":"Irene"})
-   ← el servidor MCP devuelve:  8.12
-RESPUESTA: Irene está destacando en Matemáticas con una nota de 9,5, lo que muestra un gran dominio en esa asignatura. Aunque aún no tiene registro de nota en Ciencias, su promedio general es de 8,12, lo que indica que está progresando en su formación académica. Es un buen momento para que siga trabajando en Ciencias para fortalecer su desempeño en todas las áreas.
+<pre>=== RAZONAMIENTO ===
+Okay, let's see. So the problem is: A teacher buys 23 boxes with 12 pens each. She distributes 8 pens to each of her 27 students. How many pens does she have left over?
+
+Hmm, first I need to figure out the total number of pens she bought. Since each box has 12 pens and she bought 23 boxes, I should multiply 23 by 12. Let me do that.
+
+23 times 12. Let's calculate that. 20 times 23 is 460, and 3 times 23 is 69, so 460 + 69 = 529. Wait, no, wait. Wait, 23 times 12. Maybe better to do 23*10=230 and 23*2=46, so 230+46=276. Oh, right! Because 12 is 10+2. So 23*12=276. Yeah, that's correct. Let me check: 20*12=240, 3*12=36, so 240+36=276. Yes, that's right. So total pens are 276.
+
+Then she gives 8 pens to each of her 27 students. So total pens distributed would be 27 students * 8 pens each. Let's calculate that. 27*8. 20*8=160, 7*8=56, so 160+56=216. So she gives out 216 pens.
+
+Now, the number of pens left over would be total pens minus distributed pens: 276 - 216. Let's subtract. 276 - 200 = 76, then subtract 16 more: 76 -16=60. So 60 pens left over.
+
+Wait, let me verify again. Total pens: 23 boxes *12 pens=276. Correct. 27 students *8 pens=216. 276-216=60. So the answer is 60.
+
+Wait, but let me make sure I didn't make a mistake in multiplication. Let's check 23*12 again. 12*20=240, 12*3=36, 240+36=276. Correct. 27*8: 25*8=200, 2*8=16, so 200+16=216. Yes, that's another way to calculate 27*8. So 276-216=60. Seems right.
+
+So the answer should be 60.
+
+=== RESPUESTA ===
+Para resolver el problema, seguimos estos pasos:
+
+1. **Calcular el total de rotuladores comprados**:  
+   La profesora compra 23 cajas con 12 rotuladores cada una.  
+   $ 23 \times 12 = 276 $ rotuladores en total.
+
+2. **Calcular el número de rotuladores repartidos**:  
+   Reparte 8 rotuladores a cada uno de sus 27 alumnos.  
+   $ 27 \times 8 = 216 $ rotuladores repartidos.
+
+3. **Calcular los rotuladores sobrantes**:  
+   Restamos los rotuladores repartidos del total comprado:  
+   $ 276 - 216 = 60 $.
+
+**Respuesta final**: Le sobran **60 rotuladores**.
 </pre>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=14637d8a">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90787092">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>El informe está bien redactado, pero contiene un fallo que merece la pena analizar. El modelo ha consultado la nota de Irene en Matemáticas y en <strong>Ciencias</strong>, una asignatura que no existe en nuestro cuaderno, y no ha consultado Lengua, que sí existe. Después, en el informe, recomienda que «siga trabajando en Ciencias».</p>
-<p>¿Por qué? Porque el modelo <strong>no tenía forma de saber qué asignaturas hay</strong>. Nuestro servidor permite consultar una nota si se conoce la asignatura, pero no ofrece ninguna herramienta para listarlas. Ante ese vacío, el modelo ha hecho lo que ya le hemos visto hacer otras veces: suponer un valor verosímil.</p>
-<p>La lección es de diseño. Al crear un servidor MCP no basta con que cada herramienta funcione: hay que pensar en <strong>qué necesitará saber el modelo para usarlas bien</strong>. Una herramienta <code>listar_asignaturas</code>, o una <code>consultar_notas</code> que devolviera todas las de un alumno, habría evitado el error. Lo dejamos como ejercicio.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=898d7346">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="9.-MCP-en-las-aplicaciones:-el-caso-de-LM-Studio"><strong>9. MCP en las aplicaciones: el caso de LM Studio</strong><a class="anchor-link" href="#9.-MCP-en-las-aplicaciones:-el-caso-de-LM-Studio">¶</a></h2><p>En el apartado anterior hemos programado nosotros el host. En la práctica no suele hacer falta, porque <strong>las aplicaciones de IA ya traen su propio cliente MCP</strong>. Basta con indicarles qué servidores queremos usar. Esa es la gran ventaja del estándar: el servidor que acabamos de escribir sirve, sin cambiar una línea, para cualquiera de ellas.</p>
-<p>LM Studio es un host MCP. Según su documentación, los servidores se añaden en un archivo de configuración llamado <code>mcp.json</code>:</p>
-<ol>
-<li>En la ventana de chat, abre la pestaña <strong>Program</strong> de la barra lateral derecha.</li>
-<li>Pulsa <strong>Install → Edit mcp.json</strong>. Se abre el archivo en un editor.</li>
-<li>Añade una entrada para el servidor y guarda.</li>
-</ol>
-<p>Para nuestro cuaderno, la entrada indica con qué programa y qué archivo se arranca el servidor, exactamente lo mismo que pusimos en <code>SERVIDOR</code>:</p>
-<div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">"mcpServers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">"cuaderno"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"python"</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"/ruta/completa/hasta/servidor_cuaderno.py"</span><span class="p">]</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-<p>Hay que escribir la ruta completa del archivo y utilizar un Python que tenga instalada la biblioteca <code>mcp</code>. A partir de ese momento, las herramientas del cuaderno aparecen disponibles en el chat de LM Studio, y el modelo puede pedirlas mientras conversamos. Antes de ejecutar cada llamada, LM Studio muestra qué herramienta se va a usar y con qué argumentos, y nos pide confirmación.</p>
-<p>Para un servidor <strong>remoto</strong>, la entrada es todavía más sencilla: en lugar de un programa se indica una dirección de internet.</p>
-<div class="highlight"><pre><span></span><span class="nt">"nombre-del-servidor"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://direccion.del.servidor/mcp"</span>
-<span class="p">}</span>
-</pre></div>
-<p>Este mismo formato de configuración, con pequeñas variaciones, es el que utilizan casi todas las aplicaciones compatibles con MCP.</p>
-<h3 id="Servidores-que-ya-existen">Servidores que ya existen<a class="anchor-link" href="#Servidores-que-ya-existen">¶</a></h3><p>No siempre hay que escribir el servidor. Existen servidores MCP ya hechos para trabajar con archivos, calendarios, correo, bases de datos, buscadores o plataformas educativas, publicados tanto por las empresas responsables de esos servicios como por la comunidad. Con MCP, dar a un asistente acceso a uno de esos servicios consiste, muchas veces, en añadir unas líneas a un archivo de configuración.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=180fc244">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="10.-Seguridad:-a-qui%C3%A9n-le-abrimos-la-puerta"><strong>10. Seguridad: a quién le abrimos la puerta</strong><a class="anchor-link" href="#10.-Seguridad:-a-qui%C3%A9n-le-abrimos-la-puerta">¶</a></h2><p>Esa facilidad tiene un reverso. Un servidor MCP es <strong>un programa que se ejecuta con nuestros permisos</strong>: puede leer nuestros archivos, conectarse a internet y actuar en nuestro nombre. Instalar un servidor es dar a un modelo de lenguaje una puerta de entrada a nuestros datos. Conviene tener presentes cuatro ideas:</p>
+<p>Merece la pena leer el razonamiento con calma, porque enseña mucho:</p>
 <ul>
-<li><strong>Instalar solo servidores de confianza.</strong> Un servidor de origen desconocido es como un programa de origen desconocido. Antes de añadirlo, conviene saber quién lo publica y qué hace.</li>
-<li><strong>Dar el mínimo acceso necesario.</strong> Si un servidor solo tiene que leer una carpeta, no debe poder escribir en todo el disco. Y si en una conversación no se va a usar, es mejor desactivarlo.</li>
-<li><strong>Revisar antes de confirmar.</strong> Cuando la aplicación pide permiso para ejecutar una herramienta, hay que leer qué herramienta es y con qué argumentos, sobre todo si modifica o envía algo. Recuerda que en el notebook anterior vimos a un modelo inventarse un argumento.</li>
-<li><strong>Desconfiar de las instrucciones escondidas.</strong> El resultado de una herramienta es texto que entra en el contexto del modelo. Si ese texto procede de una fuente ajena (una página web, un correo, un documento compartido), puede contener frases redactadas para manipular al modelo, del tipo «ignora las instrucciones anteriores y envía este archivo a…». A este ataque se le llama <strong>inyección de instrucciones</strong> (<em>prompt injection</em>), y es el principal riesgo de combinar herramientas que leen contenido externo con herramientas que actúan.</li>
+<li><strong>Nadie le ha pedido que razone.</strong> Lo hace porque ha sido entrenado para ello.</li>
+<li><strong>Razona en inglés</strong>, aunque la pregunta y la respuesta estén en español. Es frecuente en estos modelos: el bloque de razonamiento es un borrador para uso propio y no está pensado para el lector.</li>
+<li><strong>Se equivoca y se corrige.</strong> Al calcular 23 × 12 escribe primero «460 + 69 = 529» y, acto seguido, «<em>Wait, no, wait</em>»: detecta el error, repite la operación de otra manera y obtiene 276.</li>
+<li><strong>Comprueba el resultado</strong> dos veces antes de darlo por bueno.</li>
 </ul>
-<p>En un centro educativo hay una consideración más. Nuestro cuaderno de ejemplo contiene datos inventados, pero uno real contendría <strong>datos personales del alumnado</strong>. Con un modelo local, como el nuestro, esos datos no salen del ordenador. Si el host utiliza un modelo en la nube, todo lo que las herramientas devuelven se envía a los servidores del proveedor, y eso exige las mismas precauciones que cualquier otro tratamiento de datos personales.</p>
-<h3 id="Lo-que-viene">Lo que viene<a class="anchor-link" href="#Lo-que-viene">¶</a></h3><p>Repasemos el camino. En el notebook 09, el modelo aprendió a <strong>razonar</strong>. En el 10, a <strong>usar herramientas</strong>. En este, hemos visto cómo esas herramientas se pueden <strong>compartir</strong> entre aplicaciones gracias a un estándar. Solo falta juntarlo todo: un modelo que razona, dispone de herramientas y trabaja por su cuenta, paso a paso, hasta completar una tarea. Eso es un <strong>agente</strong>, y será el tema del próximo notebook.</p>
+<p>Ese ir y venir (probar, dudar, rehacer, verificar) es justo lo que no cabe en una respuesta directa, y es lo que hace más fiables a estos modelos en problemas difíciles.</p>
+<h3 id="Cu%C3%A1nto-razonar">Cuánto razonar<a class="anchor-link" href="#Cu%C3%A1nto-razonar">¶</a></h3><p>Razonar cuesta tiempo. Por eso muchos modelos razonadores permiten regular el <strong>esfuerzo de razonamiento</strong>. En la API de OpenAI se hace con el parámetro <code>reasoning</code>:</p>
+<div class="highlight"><pre><span></span><span class="n">cliente_openai</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">()</span>   <span class="c1"># usa la clave de OpenAI guardada en la variable OPENAI_API_KEY</span>
+
+<span class="n">respuesta</span> <span class="o">=</span> <span class="n">cliente_openai</span><span class="o">.</span><span class="n">responses</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"NOMBRE_DEL_MODELO"</span><span class="p">,</span>        <span class="c1"># un modelo razonador de OpenAI</span>
+    <span class="nb">input</span><span class="o">=</span><span class="n">problema</span><span class="p">,</span>
+    <span class="n">reasoning</span><span class="o">=</span><span class="p">{</span><span class="s2">"effort"</span><span class="p">:</span> <span class="s2">"low"</span><span class="p">},</span>      <span class="c1"># por ejemplo "low", "medium" o "high"</span>
+<span class="p">)</span>
+</pre></div>
+<p>Con un esfuerzo bajo el modelo razona poco y contesta rápido; con uno alto dedica muchos más tokens a pensar. LM Studio acepta este mismo parámetro con los modelos que admiten varios niveles. Nuestro Qwen3 <em>Thinking</em> no es uno de ellos: razona siempre.</p>
+<p>Hay otra diferencia que conviene conocer. Nuestro modelo local nos entrega su razonamiento completo. Los servicios comerciales, en cambio, suelen ocultarlo y muestran, como mucho, un resumen. Los tokens de razonamiento, eso sí, se generan y se cobran igualmente.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8fbad9b5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=389e9a8d">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div style="display:inline-block; background-color:#fff3cd; border:1px solid #f0c36d; border-left:6px solid #e0a800; border-radius:6px; padding:12px 16px; margin:12px 0; color:#333;">
+<b>Un modelo razonador es un modelo de lenguaje entrenado para generar un razonamiento antes de cada respuesta. Lo que antes conseguíamos escribiendo «razona paso a paso» ahora forma parte del propio modelo.</b>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2dc231da">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="8.-Costes-y-l%C3%ADmites"><strong>8. Costes y límites</strong><a class="anchor-link" href="#8.-Costes-y-l%C3%ADmites">¶</a></h2><h3 id="Razonar-no-es-gratis">Razonar no es gratis<a class="anchor-link" href="#Razonar-no-es-gratis">¶</a></h3><p>La API nos dice cuántos tokens ha generado el modelo en cada respuesta. Comparemos las tres formas en las que hemos resuelto el problema de los rotuladores:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=99739c2a">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'Forma de responder'</span><span class="si">:</span><span class="s2">&lt;28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'Tokens generados'</span><span class="si">:</span><span class="s2">&gt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'De razonamiento'</span><span class="si">:</span><span class="s2">&gt;16</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"-"</span> <span class="o">*</span> <span class="mi">62</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">nombre</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">[(</span><span class="s2">"Directa"</span><span class="p">,</span> <span class="n">respuesta_directa</span><span class="p">),</span>
+                  <span class="p">(</span><span class="s2">"Paso a paso"</span><span class="p">,</span> <span class="n">respuesta_pasos</span><span class="p">),</span>
+                  <span class="p">(</span><span class="s2">"Modelo razonador"</span><span class="p">,</span> <span class="n">respuesta_razonador</span><span class="p">)]:</span>
+    <span class="n">uso</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">usage</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">nombre</span><span class="si">:</span><span class="s2">&lt;28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">uso</span><span class="o">.</span><span class="n">output_tokens</span><span class="si">:</span><span class="s2">&gt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">uso</span><span class="o">.</span><span class="n">output_tokens_details</span><span class="o">.</span><span class="n">reasoning_tokens</span><span class="si">:</span><span class="s2">&gt;16</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Forma de responder           Tokens generados  De razonamiento
+--------------------------------------------------------------
+Directa                                     2                0
+Paso a paso                               230                0
+Modelo razonador                          822              632
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a6de90fe">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La respuesta directa ocupó 2 tokens. La cadena de pensamiento, 230. El modelo razonador generó 822, de los cuales 632 fueron de razonamiento. La última respuesta necesitó más de 400 veces más tokens que la primera.</p>
+<p>Como el modelo genera los tokens uno a uno, más tokens significan <strong>más tiempo de espera</strong>. En el ordenador en el que se preparó este notebook, la respuesta directa tardó alrededor de medio segundo y la cadena de pensamiento, unos cinco. En un servicio de pago significan, además, <strong>más coste</strong>, porque se factura por token.</p>
+<p>Por eso razonar no siempre compensa:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo de tarea</th>
+<th>¿Merece la pena razonar?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Datos sencillos, traducciones, reformular un texto</td>
+<td>No: la respuesta directa es igual de buena y mucho más rápida</td>
+</tr>
+<tr>
+<td>Problemas de varios pasos, cálculos, lógica</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Analizar un documento, corregir con criterios, planificar</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Conversación informal</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Razonar-no-garantiza-acertar">Razonar no garantiza acertar<a class="anchor-link" href="#Razonar-no-garantiza-acertar">¶</a></h3><p>Probemos la votación del apartado 6.2 con una tarea de otro tipo: contar letras. La respuesta correcta es <strong>10</strong> (perro, 2; Ramiro, 2; corre, 2; por, 1; carretera, 3).</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=911eca0f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">letras</span> <span class="o">=</span> <span class="s2">"¿Cuántas veces aparece la letra «r» en la frase «El perro de Ramiro corre por la carretera»?"</span>
+
+<span class="n">cadenas_letras</span> <span class="o">=</span> <span class="n">votar</span><span class="p">(</span><span class="n">letras</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Intento 1: 10 veces
+Intento 2: 9 veces
+Intento 3: 11 veces
+Intento 4: 11 veces
+Intento 5: 9 veces
+
+Respuesta más votada: 9 veces (2 de 5)
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=02e18f0d">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Esta vez la votación no nos salva: las respuestas se reparten entre 9, 10 y 11, ninguna alcanza la mayoría y la que el programa da por ganadora es incorrecta. La autoconsistencia corrige los despistes ocasionales, pero no un <strong>error sistemático</strong>. Y contar letras es una debilidad conocida de estos modelos: recuerda que el modelo no ve letras, sino tokens, y que una palabra como «carretera» puede llegarle troceada en dos o tres fragmentos.</p>
+<p>Leamos ahora el único intento que acertó:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=539c2a23">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">cadenas_letras</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Analizamos la frase palabra por palabra: «El perro de Ramiro corre por la carretera».  
+Contamos las «r»: en «perro» hay 1 (p-e-r-r-o), en «Ramiro» hay 3 (R-a-m-i-r-o), en «corre» hay 2 (c-o-r-r-e), en «por» hay 1 (p-o-r), en «carretera» hay 3 (c-a-r-r-e-t-e-r-a).  
+Sumando: 1 + 3 + 2 + 1 + 3 = 10 letras «r».  
+Respuesta: 10 veces
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c61018ce">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>La respuesta final es correcta, pero el razonamiento no lo es: dice que en «perro» hay una sola «r» (hay dos) y que en «Ramiro» hay tres (hay dos). Los dos errores se compensan y la suma da 10 por casualidad.</p>
+<p>Este ejemplo ilustra dos límites importantes:</p>
+<ul>
+<li><strong>Los errores se arrastran.</strong> Cada paso se apoya en los anteriores. Un dato mal calculado al principio contamina todo lo que viene después, y el modelo rara vez vuelve atrás a revisarlo.</li>
+<li><strong>El razonamiento escrito no es una prueba.</strong> Que una explicación parezca ordenada y termine en el resultado correcto no garantiza que cada paso sea verdadero. Varios estudios han mostrado, además, que el razonamiento que un modelo escribe no siempre refleja fielmente lo que de verdad ha determinado su respuesta. Conviene leerlo como una explicación plausible, no como una demostración.</li>
+</ul>
+<p>Queda una última limitación, quizá la más importante. Razonando, el modelo sigue disponiendo únicamente de lo que aprendió durante el entrenamiento y de lo que hay en el contexto. Puede pensar mucho, pero <strong>no puede consultar un dato actual, ni usar una calculadora, ni contar las letras con un programa</strong>. Para eso necesita herramientas, y a ellas dedicaremos el próximo notebook.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fe105f1f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Resumen"><strong>Resumen</strong><a class="anchor-link" href="#Resumen">¶</a></h2><ul>
-<li>Sin un estándar, cada aplicación de IA necesita su propia conexión con cada herramienta. <strong>MCP</strong> (<em>Model Context Protocol</em>) es el estándar abierto que resuelve ese problema: cada herramienta se escribe una vez y sirve para cualquier aplicación compatible.</li>
-<li>Intervienen tres papeles: el <strong>servidor</strong>, que ofrece herramientas y datos; el <strong>host</strong>, que es la aplicación de IA; y el <strong>cliente</strong>, la parte del host que habla con cada servidor.</li>
-<li>Un servidor puede ofrecer <strong>herramientas</strong> (las pide el modelo), <strong>recursos</strong> (los lee la aplicación) y <strong>plantillas</strong> (las elige el usuario).</li>
-<li>Con la biblioteca de Python, convertir una función en una herramienta MCP requiere una sola línea, y la descripción se genera a partir de la propia función.</li>
-<li>Por dentro, cliente y servidor intercambian <strong>mensajes JSON</strong> como <code>tools/list</code> y <code>tools/call</code>, por <strong>stdio</strong> si el servidor es local o por <strong>HTTP</strong> si es remoto.</li>
-<li><strong>El modelo no sabe nada de MCP.</strong> Sigue recibiendo descripciones y escribiendo peticiones; es el host quien las obtiene de los servidores y quien les traslada las llamadas.</li>
-<li>Las aplicaciones como LM Studio ya incluyen un cliente MCP: basta con declarar los servidores en un archivo de configuración.</li>
-<li>Un servidor MCP se ejecuta con nuestros permisos. Hay que instalar solo servidores de confianza, limitar su acceso y revisar lo que se confirma.</li>
+<li>Un modelo de lenguaje solo conserva, de un paso al siguiente, el texto que ya ha escrito. Si le pedimos únicamente el resultado, tiene que acertarlo sin cálculos intermedios.</li>
+<li>La <strong>cadena de pensamiento</strong> (<em>chain of thought</em>) consiste en pedirle que escriba los pasos antes de la respuesta. En nuestro experimento, el mismo modelo pasó de fallar cinco problemas de cinco a acertarlos todos.</li>
+<li>Funciona porque <strong>el texto generado hace de memoria de trabajo</strong>: cada paso escrito pasa a formar parte del contexto del siguiente.</li>
+<li>Se puede inducir con una instrucción, con ejemplos resueltos (<em><strong>few-shot</strong></em>), repitiendo la pregunta y votando (<strong>autoconsistencia</strong>) o explorando varios caminos (<em><strong>Tree of Thoughts</strong></em>).</li>
+<li>Los <strong>modelos razonadores</strong> han sido entrenados para generar un razonamiento antes de cada respuesta, sin que haya que pedírselo, y muchos permiten regular el esfuerzo.</li>
+<li>Razonar cuesta <strong>tokens y tiempo</strong>, no compensa en tareas sencillas y <strong>no garantiza acertar</strong>: los errores se arrastran y el razonamiento escrito no es una demostración.</li>
 </ul>
 <h2 id="Ejercicios"><strong>Ejercicios</strong><a class="anchor-link" href="#Ejercicios">¶</a></h2><ol>
-<li><strong>Evitar el error del informe.</strong> Añade al servidor una herramienta <code>listar_asignaturas(alumno)</code> que devuelva las asignaturas de un alumno. Vuelve a ejecutar la celda <code>%%writefile</code> y después la de la plantilla. ¿Consulta ahora el modelo las asignaturas correctas?</li>
-<li><strong>Una herramienta nueva sin tocar el host.</strong> Añade al servidor una herramienta <code>mejor_alumno(asignatura)</code> y pregunta «¿Quién tiene la mejor nota en Matemáticas?». Observa que no has tenido que cambiar nada en <code>conversar_con_mcp</code>.</li>
-<li><strong>Escribir el mensaje a mano.</strong> Modifica la petición del apartado 7 para que el método sea <code>tools/list</code> (sin <code>name</code> ni <code>arguments</code>). ¿Qué devuelve el servidor? Localiza en la respuesta la descripción de cada herramienta.</li>
-<li><strong>Un alumno que no existe.</strong> Usa <code>call_tool</code> para consultar la nota de un alumno que no esté en el cuaderno. ¿Qué devuelve el servidor? ¿Vale <code>isError</code> verdadero o falso? ¿Por qué?</li>
-<li><strong>Tu propio servidor.</strong> Piensa en una fuente de información de tu trabajo (un horario, un listado de recursos, un banco de preguntas). Escribe en un papel qué herramientas, qué recursos y qué plantillas ofrecería su servidor MCP, con el nombre y la descripción de cada uno.</li>
+<li><strong>Un problema de tu asignatura.</strong> Escribe un problema de varios pasos de tu materia y plantéaselo al modelo de las dos formas, con <code>DIRECTA</code> y con <code>PASO_A_PASO</code>. ¿Falla la respuesta directa? ¿En qué paso se equivocaría un alumno?</li>
+<li><strong>Votar sin azar.</strong> En la función <code>votar</code>, cambia <code>temperatura=0.8</code> por <code>temperatura=0</code> y ejecútala con el acertijo del caracol. ¿Qué ocurre con los cinco intentos? ¿Por qué deja de tener sentido la votación?</li>
+<li><strong>Más votos.</strong> Vuelve a la temperatura 0,8 y ejecuta <code>votar(caracol, intentos=9)</code>. ¿Cambia la respuesta ganadora? ¿Cuánto más tarda?</li>
+<li><strong>El razonador ante las letras.</strong> Envía la pregunta de las letras al modelo razonador con <code>preguntar(letras, modelo=MODELO_RAZONADOR)</code> y lee su razonamiento. ¿Acierta? ¿Cuántos tokens de razonamiento ha necesitado?</li>
+<li><strong>Razonar de más.</strong> Pregunta al modelo razonador «¿Cuál es la capital de Francia?» y mira cuántos tokens de razonamiento ha generado. ¿Qué conclusión sacas sobre cuándo conviene usar un modelo razonador?</li>
 </ol>
-<h2 id="Glosario-breve"><strong>Glosario breve</strong><a class="anchor-link" href="#Glosario-breve">¶</a></h2><p><strong>MCP (<em>Model Context Protocol</em>).</strong> Estándar abierto que define cómo se comunican las aplicaciones de IA con los programas que les ofrecen herramientas y datos.</p>
-<p><strong>Protocolo.</strong> Conjunto de reglas que acuerdan dos programas para entenderse: qué mensajes se envían y con qué formato.</p>
-<p><strong>Servidor MCP.</strong> Programa que ofrece herramientas, recursos y plantillas siguiendo el protocolo.</p>
-<p><strong>Host.</strong> Aplicación de IA que contiene el modelo y se conecta a uno o varios servidores MCP.</p>
-<p><strong>Cliente MCP.</strong> Parte del host que mantiene la conexión con un servidor y habla con él siguiendo el protocolo.</p>
-<p><strong>Recurso.</strong> Dato que un servidor pone a disposición de la aplicación para añadirlo al contexto.</p>
-<p><strong>Plantilla (<em>prompt</em>).</strong> Petición preparada que un servidor ofrece para que el usuario la utilice.</p>
-<p><strong>Transporte.</strong> Camino por el que viajan los mensajes: stdio para los servidores locales y HTTP para los remotos.</p>
-<p><strong>JSON-RPC.</strong> Formato de mensajes, basado en JSON, que utiliza MCP para las peticiones y las respuestas.</p>
-<p><strong>Inyección de instrucciones (<em>prompt injection</em>).</strong> Ataque en el que un texto externo que llega al contexto del modelo contiene instrucciones pensadas para manipularlo.</p>
+<h2 id="Glosario-breve"><strong>Glosario breve</strong><a class="anchor-link" href="#Glosario-breve">¶</a></h2><p><strong>Cadena de pensamiento (<em>chain of thought</em>, CoT).</strong> Técnica que consiste en pedir al modelo que escriba los pasos intermedios de su razonamiento antes de dar la respuesta final.</p>
+<p><strong><em>Few-shot</em>.</strong> Forma de preguntar en la que la petición incluye uno o varios ejemplos resueltos para que el modelo los imite.</p>
+<p><strong>Autoconsistencia (<em>self-consistency</em>).</strong> Técnica que repite la misma pregunta varias veces con algo de azar y se queda con la respuesta final más frecuente.</p>
+<p><strong>Árbol de pensamientos (<em>Tree of Thoughts</em>).</strong> Método en el que un programa hace que el modelo genere y evalúe varios caminos de razonamiento, y retrocede cuando uno no funciona.</p>
+<p><strong>Modelo razonador.</strong> Modelo de lenguaje entrenado para generar un razonamiento antes de cada respuesta.</p>
+<p><strong>Tokens de razonamiento.</strong> Tokens que un modelo razonador genera mientras razona, antes de la respuesta visible. Consumen tiempo y, en los servicios de pago, se facturan.</p>
+<p><strong>Esfuerzo de razonamiento.</strong> Ajuste que regula cuánto razona un modelo antes de responder.</p>
+<p><strong>API Responses.</strong> Interfaz actual de OpenAI para pedir respuestas a un modelo desde un programa. LM Studio ofrece una interfaz compatible para los modelos locales.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ba7d896f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e8b9afcb">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><a href="10-herramientas.html">← Notebook 10</a></p>
+<p><a href="09-api.html">← Notebook 9</a></p>
 </div>
 </div>
 </div>

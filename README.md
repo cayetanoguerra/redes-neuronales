@@ -10,10 +10,11 @@ Notebooks del módulo de redes neuronales de *Fundamentos de la Inteligencia Art
 6. Redes neuronales multiclase
 7. Redes neuronales para texto: LLMs
 8. Modelos locales: un LLM en tu propio ordenador
-9. Razonamiento: de la cadena de pensamiento a los modelos que razonan
-10. Herramientas: cuando el modelo necesita actuar
-11. MCP: un estándar para conectar modelos y herramientas
-12. Agentes: modelos que trabajan paso a paso hacia un objetivo
+9. API: cómo hablan los programas con los modelos
+10. Razonamiento: de la cadena de pensamiento a los modelos que razonan
+11. Herramientas: cuando el modelo necesita actuar
+12. MCP: un estándar para conectar modelos y herramientas
+13. Agentes: modelos que trabajan paso a paso hacia un objetivo
 
 ## Leer en la web
 
@@ -21,7 +22,7 @@ La web se publica con GitHub Pages desde la raíz de la rama `main` (*Settings �
 
 ## Trabajar en Google Colab
 
-Cada notebook tiene un botón **Abrir en Colab**, también disponible en la web. Desde Colab, *Archivo → Guardar una copia en Drive* crea una copia propia en la cuenta de Google de cada alumno. Las imágenes se cargan desde este repositorio y el notebook 06 incluye una celda inicial que clona el repositorio para disponer de `data/` y `libs/`. La última celda del 08 y el código de los notebooks 09 a 12 necesitan LM Studio en el ordenador local y no funcionan en Colab.
+Cada notebook tiene un botón **Abrir en Colab**, también disponible en la web. Desde Colab, *Archivo → Guardar una copia en Drive* crea una copia propia en la cuenta de Google de cada alumno. Las imágenes se cargan desde este repositorio y el notebook 06 incluye una celda inicial que clona el repositorio para disponer de `data/` y `libs/`. La última celda del 08 y el código de los notebooks 09 a 13 necesitan LM Studio en el ordenador local y no funcionan en Colab.
 
 Para abrir un notebook en Colab: `https://colab.research.google.com/github/cayetanoguerra/redes-neuronales/blob/main/notebooks/<notebook>.ipynb`
 
@@ -34,7 +35,7 @@ jupyter lab notebooks/
 
 Ejecuta los notebooks con `notebooks/` como directorio de trabajo: necesitan `imgs/`, `data/` y `libs/`.
 
-Los notebooks 09 a 12 necesitan [LM Studio](https://lmstudio.ai) con el servidor local activo y los modelos `qwen/qwen3-4b-2507` y `qwen/qwen3-4b-thinking-2507`. El 11 y el 12 crean al ejecutarse el archivo `servidor_cuaderno.py` y, el 12, la carpeta `informes/`.
+Los notebooks 09 a 13 necesitan [LM Studio](https://lmstudio.ai) con el servidor local activo y los modelos `qwen/qwen3-4b-2507` y `qwen/qwen3-4b-thinking-2507`. El 12 y el 13 crean al ejecutarse el archivo `servidor_cuaderno.py` y, el 13, la carpeta `informes/`.
 
 ## Regenerar el HTML
 
